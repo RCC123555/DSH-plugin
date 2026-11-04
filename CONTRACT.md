@@ -14,7 +14,7 @@
 
 | 归属 | 文件 |
 |---|---|
-| Lead | `package.json`、`cordis.patch.yml`、`lib/index.mjs`、`CONTRACT.md`、安装/集成 |
+| Lead | `package.json`、`cordis.patch.yml`、`lib/index.mjs`、`lib/batch.mjs`、`python/merge_quotes.py`、`python/verify_merge.py`、`CONTRACT.md`、安装/集成 |
 | A 定价引擎 | `lib/pricing.mjs`、`lib/lookup.mjs`、`test/pricing.test.mjs`、`test/lookup.test.mjs` |
 | B Excel | `lib/quote.mjs`、`python/build_workbook.py`、`test/quote.test.mjs` |
 | C 1688 | `lib/cdp.mjs`、`lib/ali1688.mjs`、`test/ali1688.test.mjs`、`test/fixtures/` |
@@ -63,6 +63,11 @@ export async function evaluate(port, targetId, expression) // → value
 export async function navigate(port, targetId, url)
 export async function screenshot(port, targetId, filePath)
 export async function closeBrowser(port)
+export async function createTargetBackground(port, url) // 后台建标签，不激活、不抢焦点
+export async function showWindow(port, targetId)        // → {windowId, bounds}
+export async function minimizeWindow(port, targetId)
+export async function getIdleMs()                       // → 毫秒 | null（仅 Windows）
+export function shouldSurfaceWindow(mode, idleMs, thresholdMs) // → boolean
 // ali1688.mjs —— 业务层
 export async function loginStatus(options)      // → {loggedIn:boolean, memberName?:string, evidence:string, port}
 export async function searchOffers({query, imagePath, limit=5, options}) // → {method:'keyword'|'image', keyword, searchedAt, candidates:[{url,title,priceText,unitText,moqText,company,soldText}], rawCount, notes}
@@ -75,9 +80,10 @@ C 的浏览器策略（性能/稳定性优先）：
 3. 登录：`loginStatus` 检测登录态（首页/我的阿里页面特征 + 已知 cookie 域）；未登录时**绝不**读/存账号密码，返回需要用户在窗口内扫码或登录的提示；提供 `openLoginPage()` 打开登录页。
 4. 反爬/验证码：检测到滑块/验证码时返回 `blocked:'captcha'` 并保存截图路径，由上层提示用户手动完成，不得绕过。
 5. 禁止：发询价/下单/发消息、导出 cookie 或凭据、伪造 URL 或价格。所有真实抓取必须带 `capturedAt`（ISO 时间）与 `evidence` 描述。
+6. 窗口策略（默认后台）：插件 Chrome 启动即放到屏外并最小化（`--window-position=-32000,-32000 --start-minimized`，再用浏览器级 `Browser.setWindowBounds{windowState:'minimized'}` 兜底），新标签一律用 `Target.createTarget{background:true}`（不用 `/json/new`，它会激活标签页把窗口拉回前台），查价过程永不 `Page.bringToFront`。仅当检测到登录墙/验证码、且 Windows `GetLastInputInfo` 显示用户已 idle ≥ `HWQ_SURFACE_IDLE_MS`（默认 120000ms）时才把窗口调到前台并截图；用户在用则保持后台，返回 `windowShown:false` 与 `windowNote` 提示 `hwq_1688_login action:"show"`。窗口模式由 `HWQ_WINDOW=auto|background|visible` 控制（默认 auto）。用户显式 `action:"open"`/`"show"` 时总是置前，`action:"hide"` 收回后台；复用已存在的浏览器时不改变其窗口状态。
 
 ## 工具注册（Lead 在 `lib/index.mjs`）
-`hwq_calculate`、`hwq_quote`、`hwq_1688_login`、`hwq_1688_search`、`hwq_1688_offer`、`hwq_1688_average`。参数用 JSON Schema；返回值同时给模型可读文本摘要 + 结构化数据。所有工具都必须：参数校验失败时返回可修正的错误；不静默编造数据。
+`hwq_calculate`、`hwq_quote`、`hwq_quote_batch`、`hwq_1688_login`、`hwq_1688_search`、`hwq_1688_offer`、`hwq_1688_average`。参数用 JSON Schema；返回值同时给模型可读文本摘要 + 结构化数据。所有工具都必须：参数校验失败时返回可修正的错误；不静默编造数据。
 
 ## 通用工程约束
 - ESM，`import` 只用 `node:*` 内置模块；不要 import 任何 npm 包；不要读 asar。

@@ -5,11 +5,12 @@
 ## 登录与浏览器生命周期
 
 1. `hwq_1688_login action:"status"`：返回是否已登录及证据。已登录直接查价，不重复要求登录。
-2. 未登录：`hwq_1688_login action:"open"` 打开登录页，请用户在插件浏览器窗口内扫码/登录；**绝不代填账号密码、不读取或导出 Cookie**。完成后用 `status` 确认。
+2. 未登录：`hwq_1688_login action:"open"` 打开登录页并把窗口调到前台，请用户在插件浏览器窗口内扫码/登录；**绝不代填账号密码、不读取或导出 Cookie**。完成后用 `status` 确认。也可以用 `action:"show"` 只调出窗口、`action:"hide"` 收回后台。
 3. `hwq_1688_login action:"flush"` 把登录态强制写入持久 profile（会优雅关闭并按同一 profile 重启插件 Chrome，登录态保留），重启后长期有效。
 4. 插件使用独立 profile，不关闭用户其它浏览器；不要重启、另开调试端口或用自写脚本绕开工具。
 5. **规格匹配是硬门槛**：`hwq_1688_search`/`hwq_1688_offer` 只有在螺纹规格（M6）、长度（×15）、头型三者与目标一致时才标 `specMatched:true`；“套装/配螺母/大全”等组合件价格不得当单颗价使用。搜到 3–5 个候选也可能一个都不匹配——这时如实报 pending，不要拿不符规格的价格凑数。
-6. 出现滑块/图形验证码时，工具返回 `blocked:"captcha"` 及截图路径，提示用户在该窗口手动完成；不自动处理、不绕过。
+6. 出现滑块/图形验证码时，工具返回 `blocked:"captcha"` 及截图路径，提示用户在该窗口手动完成；不自动处理、不绕过。验证码以 iframe（`x5secdata`/`punish`/`captcha`）形式挂在搜索页时，即使正文为空也必须判为拦截，不能写成「没搜到商品」。
+7. **默认后台，不抢前台**：插件 Chrome 启动即屏外最小化，新标签用 `Target.createTarget{background:true}` 创建，查价过程不会把窗口拉到前台。只有登录墙/验证码且 Windows 检测到用户已 idle ≥ `HWQ_SURFACE_IDLE_MS`（默认 120000ms）时才自动置前；用户在用则保持后台，返回 `windowShown:false` 与 `windowNote`，此时用 `hwq_1688_login action:"show"` 手动调出、`action:"hide"` 收回。窗口模式由 `HWQ_WINDOW=auto|background|visible` 控制（默认 auto）。
 
 ## 故障分层
 

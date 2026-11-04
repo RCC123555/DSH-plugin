@@ -70,20 +70,21 @@ git push -u origin "新插件名"
 
 只给毛重也可以：先扣包材与非组装附带件得组装净重，再扣单独计价的必需配件得主料本体重量；**禁止**用固定毛净比。
 
-## 六个工具
+## 七个工具
 
 | 工具 | 作用 |
 | --- | --- |
 | `hwq_calculate` | 纯计算：重量拆分、成本、加工/喷涂/包装、利润与税金，返回 `ready`/`draftOnly`/`blockingIssues` |
-| `hwq_quote` | 生成「报价BOM + 报价底稿」两工作表 Excel（模板扩行、未税报价行、嵌入产品图、逐家 1688 证据、脚本复算区块） |
-| `hwq_1688_login` | `status`/`open`/`flush`：查登录态、开登录页（用户扫码）、把登录态强制落盘到持久 Chrome profile |
+| `hwq_quote` | 单产品：生成「报价BOM + 报价底稿」两工作表 Excel（模板扩行、未税报价行、嵌入产品图、逐家 1688 证据、脚本复算区块） |
+| `hwq_quote_batch` | 多产品：一个工作簿、每款一张分表（`01_…`）+ `00_汇总` 跨款对比 + `00_口径说明`，公式改写为本表引用，附静态逐格校验 |
+| `hwq_1688_login` | `status`/`open`/`show`/`hide`/`flush`：查登录态、开登录页（用户扫码）、把窗口调到前台/收回后台、把登录态强制落盘到持久 Chrome profile |
 | `hwq_1688_search` | 关键词或以图搜款，返回真实候选（URL/标题/价格文本/单位/MOQ/供应商）与 `blocked`/截图 |
 | `hwq_1688_offer` | 打开详情页抽 SKU、阶梯价、起订量，标出选中规格 |
 | `hwq_1688_average` | 同规格、同单位、同口径的 3–5 条证据归一取算术均价，逐条报告被排除原因 |
 
 ## 1688 能力（本次重做的重点）
 
-- **自带持久 Chrome**：默认端口 19222、独立 profile（`~/.dsh/ego-browser/...` 同级的插件 state 目录），零依赖 CDP 客户端，不接管用户其它浏览器。
+- **自带持久 Chrome**：默认端口 19222、独立 profile（`~/.dsh/ego-browser/...` 同级的插件 state 目录），零依赖 CDP 客户端，不接管用户其它浏览器。**默认后台运行**：启动即屏外最小化、新标签用 `Target.createTarget{background:true}`，查价全程不抢前台；只有登录墙/验证码且检测到用户已离开 ≥`HWQ_SURFACE_IDLE_MS`（默认 120000ms；`HWQ_WINDOW=auto|background|visible`）时才自动置前，也可用 `hwq_1688_login action:"show"`/`"hide"` 手动控制。
 - **登录**：`open` 打开登录页由用户扫码；`status` 用 cookie 信号 + 页面信号双证据判断（不读 cookie 值）；`flush` 优雅关闭并按同一 profile 重启以强制落盘，重启后仍登录。
 - **搜索**：`s.1688.com` 关键词搜索（中文按 GBK 编码进 URL，UTF-8 会整页乱码）；先解析 HTML，JS 壳页面回退可见 DOM 卡片（实测 60 个真实卡片）；以图搜款走 `s.1688.com/youyuan/index.htm` 上传本地图片。
 - **详情**：优先读 `window.context.result.data`，回退可见 DOM；返回 SKU 列表、价格文本、MOQ、阶梯。
@@ -94,8 +95,8 @@ git push -u origin "新插件名"
 
 ```
 NODE="C:/Users/Lenovo/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/node/bin/node.exe"
-"$NODE" --test "hardware-quote/test/*.test.mjs"   # 121 例：116 pass / 0 fail / 5 skip（live 需 HWQ_LIVE=1）
-# 单独跑：pricing 59 + lookup 24 + quote 7 + single-accessory 1 + ali1688 24 离线（另 5 例 live）
+"$NODE" --test "hardware-quote/test/*.test.mjs"   # 128 例：123 pass / 0 fail / 5 skip（live 需 HWQ_LIVE=1）
+# 单独跑：pricing 59 + lookup 24 + quote 7 + single-accessory 1 + cdp-window 7 + ali1688 24 离线（另 6 例 live）
 ```
 
 工具级冒烟（已实测通过）：
@@ -120,13 +121,16 @@ NODE="C:/Users/Lenovo/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/node/bi
 
 ```
 hardware-quote/
-  lib/index.mjs        插件入口：注册 hardware-quote 技能 + 6 个工具
+  lib/index.mjs        插件入口：注册 hardware-quote 技能 + 7 个工具
   lib/pricing.mjs      定价引擎（旧 calculate.mjs 全量移植 + blockingIssues 分类）
   lib/lookup.mjs       证据校验与均价（旧 1688-lookup.mjs 移植）
   lib/quote.mjs        两页 Excel 导出编排（template 扩行 → python → 读回复核）
+  lib/batch.mjs        多产品合并交付编排（逐款导出 → 汇总 → 合并 → 静态校验）
   lib/cdp.mjs          零依赖 CDP 客户端（持久 Chrome、导航、求值、截图、cookie 元数据）
   lib/ali1688.mjs      1688 业务层（登录态、搜索、以图搜款、详情、证据映射）
   python/build_workbook.py  openpyxl 生成工作簿 + 读回求值校验
+  python/merge_quotes.py    多产品分表合并（公式改写为同表引用）
+  python/verify_merge.py    合并件逐格静态校验
   skill/SKILL.md       技能正文（注册进 DSH skills 服务）
   skill/references/    报价规则/输入契约/1688 流程/定价依据/发布说明
   skill/assets/对外报价BOM表.xlsx  唯一在用模板（SHA256 已核对）

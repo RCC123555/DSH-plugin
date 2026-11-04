@@ -118,9 +118,17 @@
 - `links`：底稿中写入的详情链接；`imageEmbedded`：产品图是否嵌入。
 - 底稿含“脚本复算（只读校验）”区块，列出 JS 计算的成本/利润/未税/含税/净利率静态值。**没有 LibreOffice**，不得声称已用 Excel 实际重算，只能以 `checks` 与该区块核对。
 
+### hwq_quote_batch
+
+一次为多个产品出**一个** Excel：每个产品一张分表（顺序 `01_产品…`），前面自动加 `00_汇总`（23 列跨款对比表：SKU/名称/尺寸/外箱/净重/毛重/铁木主料重量/成本拆分/C/P/M/U/T/Q/备注风险）与 `00_口径说明`。每张分表上半是「报价BOM」、下半是「报价底稿」，跨表公式已改写为本表引用，打印区/列宽/合并区/图片/超链接随源表复制。
+
+传入 `items: [{input|inputPath, name?, imagePath?, allowDraft?, note?}]`（数组顺序即分表顺序），可加 `outputDir`、`workDir`、`label`（批次名，进文件名与汇总标题）、`pythonPath`。流程为逐款 `buildQuote` → 汇总 → `python/merge_quotes.py` 合并 → `python/verify_merge.py` 静态校验 → 命名 `<日期>_<label>[_待核价]_报价_vNN.xlsx` 落盘（vNN 自动避让同批已有文件）。返回 `output`、`sheets[{sheet,sku,frontRows,bottomRows,bottomStart,checks}]`、`summary`、`verification`（逐分表值/公式/合并区/链接/图片比对）、`checks`（逐款 formulaErrors/links/imageEmbedded）。
+
+任一款未就绪即整体失败（缺价必须显式给该款 `allowDraft:true`）；只出草稿时文件名带「待核价」。**多产品同单报价必须用它**，不要逐款生成多个文件；单产品仍用 `hwq_quote`。
+
 ### hwq_1688_login
 
-`action: "status" | "open" | "flush"`：查登录态、打开登录页、把登录态强制落盘到持久 Chrome profile（`flush` 会优雅关闭并按同一 profile 重启插件 Chrome，登录态保留，返回 `flushed.ok` 与原因；不读取也不导出 Cookie 值）。扫码/验证码由用户完成，工具不代填凭据。
+`action: "status" | "open" | "show" | "hide" | "flush"`：查登录态、打开登录页、把窗口调到前台、收回后台、把登录态强制落盘到持久 Chrome profile（`flush` 会优雅关闭并按同一 profile 重启插件 Chrome，登录态保留，返回 `flushed.ok` 与原因；不读取也不导出 Cookie 值）。扫码/验证码由用户完成，工具不代填凭据。插件 Chrome 默认后台最小化、查价不抢前台；只有登录墙/验证码且检测到用户已离开 ≥ `HWQ_SURFACE_IDLE_MS`（默认 120000ms）时才自动置前，窗口模式用 `HWQ_WINDOW=auto|background|visible` 指定（默认 `auto`）。`open`/`show` 总是置前，`hide` 收回后台。
 
 ### hwq_1688_search
 

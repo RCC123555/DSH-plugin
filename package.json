@@ -1,7 +1,7 @@
 {
   "name": "hardware-quote-dsh-plugin",
-  "version": "3.0.1",
-  "description": "五金产品报价 for DeepSeek Harness: 识图/尺寸/重量驱动的铁木五金产品核价与两页 Excel 报价输出，内置 1688 自动登录查价与证据均价（hwq_* 工具 + hardware-quote skill）。",
+  "version": "3.2.0",
+  "description": "五金产品报价 for DeepSeek Harness: 识图/尺寸/重量驱动的铁木五金产品核价与两页 Excel 报价输出，多产品合并为「一个工作簿、每款一张分表」，内置 1688 自动登录查价与证据均价（hwq_* 工具 + hardware-quote skill）。",
   "type": "module",
   "main": "./lib/index.mjs",
   "exports": {
@@ -28,7 +28,7 @@
     }
   },
   "scripts": {
-    "test": "node --test test/"
+    "test": "node --test \"test/*.test.mjs\""
   },
   "license": "UNLICENSED",
   "private": true

@@ -539,6 +539,20 @@ test('live: 详情抽取返回真实 SKU/阶梯价（无需登录）', {skip: !L
   assert.equal(selected.selected, true, 'skuHint 命中时应在该 SKU 上标记 selected');
 });
 
+test('live: 后台建标签不改变窗口状态（查价不抢前台）', {skip: !LIVE}, async () => {
+  const {createTargetBackground, ensureBrowser, getWindowBounds, listTargets} = await import('../lib/cdp.mjs');
+  const browser = await ensureBrowser({});
+  assert.ok(['auto', 'background', 'visible'].includes(browser.windowMode), 'windowMode 必须是合法模式');
+  const [first] = await listTargets(browser.port);
+  const before = await getWindowBounds(browser.port, first.targetId);
+  const created = await createTargetBackground(browser.port, 'about:blank');
+  assert.ok(created.targetId, '后台建标签应返回 targetId');
+  const after = await getWindowBounds(browser.port, first.targetId);
+  assert.equal(after?.bounds?.windowState, before?.bounds?.windowState, '后台建标签不得改变窗口状态');
+  const {closeTarget} = await import('../lib/cdp.mjs');
+  await closeTarget(browser.port, created.targetId).catch(() => {});
+});
+
 test.after(async () => {
   if (!LIVE) return;
   const {disconnectAll} = await import('../lib/cdp.mjs');
