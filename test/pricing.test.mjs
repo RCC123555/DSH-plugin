@@ -1,0 +1,508 @@
+// hardware-quote · lib/pricing.mjs 验收测试
+//
+// 1) 逐条等价旧版 _legacy/test-calculate.mjs 的 50 个核算验收用例（含断言语义）；
+// 2) 覆盖 3.0.0 新增 blockingIssues / draftOnly 行为，以及
+//    缺价 vs 重量矛盾 / 尺寸缺失 / 包装不完整的分类与 draftAllowed 收敛（旧版 P0 修复）。
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {VERSION, PROCESSING_RATE_PER_KG, DEFAULT_RATES, FIXED_PACKAGING, quoteDate, dimensionsCm, cartonAreaM2, cartonPrice, pricing, calculate} from '../lib/pricing.mjs';
+
+const near = (a, b, tol = 1e-9) => assert.ok(Math.abs(a - b) < tol, `${a} != ${b}`);
+const base = () => ({
+  product: {name: '验收产品', material: 'metal', netWeightKg: 10, netWeightBasis: 'assembled', dimensions: {length: 120, width: 60, height: 75, unit: 'cm'}, cartonDimensions: {length: 129, width: 33, height: 11, unit: 'cm'}},
+  processing: {hasBoardProcessing: false, needsCoating: true},
+  accessories: [{name: '内六角法兰面螺丝', spec: 'M6×15MM', quantity: 8, templateKey: 'm6-flange-screw', weightKgPerUnit: .005}, {name: '螺母', spec: 'M6', quantity: 8, templateKey: 'm6-nut', weightKgPerUnit: .005}],
+  packaging: {protection: [], requireTopBottomEps: false, epsExceptionBasis: '该测试夹具只测重量和价格，显式排除EPS包装；EPS覆盖由专门用例验证。'},
+});
+
+/* ------------------------------------------------------------------ *
+ * 旧版 test-calculate.mjs 的 50 个用例（逐条翻译，保持断言语义）
+ * ------------------------------------------------------------------ */
+
+test('原纸箱示例与mm换算', () => {
+  near(cartonPrice({length: 129, width: 33, height: 11, unit: 'cm'}), 6.49026);
+  near(cartonPrice({length: 1290, width: 330, height: 110, unit: 'mm'}), 6.49026);
+  assert.deepEqual(dimensionsCm({length: 1, width: 0.5, height: 0.2, unit: 'm'}), {length: 100, width: 50, height: 20});
+});
+
+test('组装净重保留配件，主料和喷涂拆出配件', () => {
+  const x = base(); x.accessories.forEach(a => a.weightKgPerUnit = .125);
+  const q = calculate(x);
+  assert.equal(q.ready, true);
+  near(q.weights.net, 10); near(q.weights.accessories, 2); near(q.weights.body, 8); near(q.weights.metal, 8);
+  near(q.costs.main, 40); near(q.costs.coating, 20); near(q.costs.accessories, 2.4);
+});
+
+test('只有毛重先扣包材，必需配件保留在组装净重', () => {
+  const x = base(); delete x.product.netWeightKg; x.product.grossWeightKg = 14;
+  x.accessories.forEach(a => a.weightKgPerUnit = .025);
+  x.weightEstimates = {accessoriesKg: 0.4, packagingKg: 2.6, accessoriesBasis: '测试规格估重', packagingBasis: '测试箱与保护材料估重'};
+  const q = calculate(x);
+  assert.equal(q.ready, true); near(q.weights.net, 11.4); near(q.weights.body, 11); assert.equal(q.weights.netEstimated, true);
+});
+
+test('毛重不能直接当净重', () => {
+  const x = base(); delete x.product.netWeightKg; x.product.grossWeightKg = 14;
+  const q = calculate(x);
+  assert.equal(q.ready, false); assert.equal(q.totals, null); assert(q.issues.some(i => i.code === 'missing_packaging_weight'));
+});
+
+test('毛重低于净重阻止确定报价', () => {
+  const x = base(); x.product.grossWeightKg = 9;
+  const q = calculate(x);
+  assert.equal(q.ready, false); assert.equal(q.totals, null);
+});
+
+test('木件默认18mm及650kg/m³，金属重为本体剩余', () => {
+  const x = base(); x.product.material = 'mixed'; x.product.netWeightKg = 12; x.woodPieces = [{length: 120, width: 60, unit: 'cm'}];
+  const q = calculate(x);
+  assert.equal(q.ready, true); near(q.weights.wood, 8.424); near(q.weights.metal, 3.496); assert(q.assumptions.some(a => a.includes('18mm')));
+});
+
+test('明确铁木分重优先', () => {
+  const x = base(); x.product.material = 'mixed'; x.product.metalWeightKg = 6; x.product.woodWeightKg = 3.92; x.woodPieces = [{length: 0, width: 0, unit: 'cm'}];
+  const q = calculate(x);
+  assert.equal(q.ready, true); near(q.weights.metal, 6); near(q.weights.wood, 3.92);
+});
+
+test('木重超过净重阻止报价', () => {
+  const x = base(); x.product.material = 'mixed'; x.woodPieces = [{length: 200, width: 200, unit: 'cm'}];
+  assert.equal(calculate(x).ready, false);
+});
+
+test('10kg金属的开料焊接人工成本为30元，管材板材及旧字段省略均一致', () => {
+  for (const flag of [false, true, undefined]) {
+    const x = base(); x.accessories = [];
+    if (flag === undefined) delete x.processing.hasBoardProcessing; else x.processing.hasBoardProcessing = flag;
+    const q = calculate(x);
+    assert.equal(q.ready, true); near(q.costs.processing, 30);
+  }
+});
+
+test('开料焊接人工随本体金属重量变化，扣除单独采购配件及木材', () => {
+  const x = base(); x.product.material = 'mixed'; x.product.netWeightKg = 15; x.product.metalWeightKg = 10; x.product.woodWeightKg = 4.92;
+  let q = calculate(x); assert.equal(q.ready, true); near(q.costs.processing, 30);
+  x.product.netWeightKg = 7.5; x.product.metalWeightKg = 2.5; q = calculate(x);
+  assert.equal(q.ready, true); near(q.costs.processing, 7.5);
+});
+
+test('金属人工单价独立于主料金属单价', () => {
+  const x = base(); x.accessories = []; x.rates = {metal: 8};
+  const q = calculate(x);
+  assert.equal(q.ready, true); near(q.costs.main, 80); near(q.costs.processing, 30);
+});
+
+test('纯木产品已确认零金属，开料焊接人工为零', () => {
+  const x = base(); x.product.material = 'wood'; x.processing.needsCoating = false;
+  const q = calculate(x);
+  assert.equal(q.ready, true); near(q.weights.metal, 0); near(q.costs.processing, 0);
+});
+
+test('金属分重未知时人工与总价待核', () => {
+  const x = base(); x.product.material = 'mixed';
+  const q = calculate(x);
+  assert.equal(q.ready, false); assert.equal(q.costs.processing, null); assert.equal(q.totals, null);
+});
+
+test('无需喷涂为明确零值', () => {
+  const x = base(); x.processing.needsCoating = false;
+  near(calculate(x).costs.coating, 0);
+});
+
+test('EPS体积与上下整片用量，固定项12.1元', () => {
+  const x = base(); x.packaging.requireTopBottomEps = true;
+  x.packaging.protection = [{name: '上下整片', material: 'EPS', quantity: 2, pricing: 'volume', dimensions: {length: 126, width: 30, height: 1.5, unit: 'cm'}, templateKey: 'eps-15-volume'}];
+  const q = calculate(x);
+  assert.equal(q.ready, true); near(q.costs.protection, 4.8195); near(q.costs.fixedPackaging, 12.1);
+});
+
+test('7%、8.5%、10%净利率及管理费金额', () => {
+  for (const r of [.07, .085, .10]) {
+    const q = pricing(100, r);
+    near(q.profit / q.afterTax, r); near(q.management / q.profit, .9); near(q.tax / q.beforeTax, .1);
+    near(q.afterTax, q.beforeTax + q.tax); assert(q.management < q.profit);
+  }
+});
+
+test('缺价不以零补齐', () => {
+  const x = base(); x.accessories.push({name: '脚垫', spec: '直径30mm', quantity: 4, sourceType: 'pending'});
+  const q = calculate(x);
+  assert.equal(q.ready, false); assert.equal(q.costs.accessories, null); assert.equal(q.totals, null);
+});
+
+test('明确用户零价与缺价不同', () => {
+  const x = base(); x.accessories.push({name: '赠送脚垫', quantity: 4, unitPrice: 0, sourceType: 'user', includedInNetWeight: false});
+  assert.equal(calculate(x).ready, true);
+});
+
+test('未提供和null单价都保留待核价且不影响已知物料价', () => {
+  for (const priceInput of [{}, {unitPrice: null}]) {
+    const x = base(); x.accessories.push({name: '脚垫', spec: '直径30mm', quantity: 4, weightKgPerUnit: .01, ...priceInput});
+    const q = calculate(x), item = q.accessories.at(-1);
+    assert.equal(item.unitPrice, null); assert.equal(item.cost, null); assert.equal(q.ready, false);
+    assert.equal(q.costs.accessories, null); assert.equal(q.directCost, null); assert.equal(q.totals, null);
+    near(q.accessories[0].unitPrice, .1); near(q.accessories[1].unitPrice, .2);
+    assert.deepEqual(q.issues.filter(i => i.severity === 'blocking').map(i => i.code), ['missing_price']);
+    assert(q.issues.some(i => i.code === 'missing_price' && i.message.includes('1688') && i.message.includes('可留空')));
+  }
+});
+
+test('pending缺价覆盖三类模板回填，未标pending的准确模板仍兼容', () => {
+  for (const priceInput of [{}, {unitPrice: null}]) {
+    for (const pending of [false, true]) {
+      const x = base();
+      x.accessories.forEach(a => Object.assign(a, priceInput, pending ? {sourceType: 'pending'} : {}));
+      x.packaging.protection = [{name: '上下整片', material: 'EPS', quantity: 2, pricing: 'volume', dimensions: {length: 126, width: 30, height: 1.5, unit: 'cm'}, templateKey: 'eps-15-volume', ...priceInput, ...(pending ? {sourceType: 'pending'} : {})}];
+      const q = calculate(x), items = [...q.accessories, ...q.protection];
+      assert.equal(q.ready, !pending);
+      assert.equal(q.issues.filter(i => i.code === 'missing_price').length, pending ? 3 : 0);
+      if (pending) {
+        for (const item of items) {assert.equal(item.unitPrice, null); assert.equal(item.cost, null); assert.equal(item.sourceType, 'pending');}
+        assert.equal(q.costs.accessories, null); assert.equal(q.costs.protection, null); assert.equal(q.totals, null);
+      } else {
+        assert.deepEqual(items.map(i => i.unitPrice), [.1, .2, 425]);
+        assert(items.every(i => i.sourceType === 'template'));
+        assert(q.totals);
+      }
+    }
+  }
+});
+
+test('三类模板尊重用户明确零价，不回填默认价格', () => {
+  const x = base();
+  x.accessories.forEach(a => Object.assign(a, {unitPrice: 0, sourceType: 'user'}));
+  x.packaging.protection = [{name: '上下整片', material: 'EPS', quantity: 2, pricing: 'volume', dimensions: {length: 126, width: 30, height: 1.5, unit: 'cm'}, templateKey: 'eps-15-volume', unitPrice: 0, sourceType: 'user'}];
+  const q = calculate(x);
+  assert.equal(q.ready, true);
+  for (const item of [...q.accessories, ...q.protection]) {assert.equal(item.unitPrice, 0); assert.equal(item.cost, 0); assert.equal(item.sourceType, 'user');}
+  assert.equal(q.costs.accessories, 0); assert.equal(q.costs.protection, 0); assert(q.totals);
+});
+
+test('未确认的暂估价格不能形成确定总价', () => {
+  const x = base(); x.accessories.push({name: '脚垫', quantity: 4, unitPrice: .5, sourceType: 'estimate', weightKgPerUnit: .01});
+  assert.equal(calculate(x).ready, false);
+  x.accessories.at(-1).estimateApproved = true;
+  assert.equal(calculate(x).ready, true);
+});
+
+test('非公开网页协议不能形成参考超链接', () => {
+  const x = base(); x.accessories.push({name: '脚垫', quantity: 4, unitPrice: .5, sourceType: 'user', url: 'javascript:alert(1)'});
+  const q = calculate(x);
+  assert.equal(q.ready, false); assert.equal(q.accessories.at(-1).url, '');
+});
+
+test('不同螺丝规格不套模板价', () => {
+  const x = base(); x.accessories[0].spec = 'M8×20';
+  assert.equal(calculate(x).ready, false);
+});
+
+test('联网价要求具体来源与日期', () => {
+  const x = base(); x.accessories = [{name: '脚垫', quantity: 4, unitPrice: .3, sourceType: 'web'}];
+  assert.equal(calculate(x).ready, false);
+});
+
+test('按500件产品需求匹配MOQ及档位', () => {
+  const x = base(); x.accessories = [{name: '脚垫', quantity: 4, unitPrice: .3, sourceType: 'user', weightKgPerUnit: .01, minOrderQty: 2000, priceTierMinQty: 2000}];
+  assert.equal(calculate(x).ready, true);
+  x.order = {quantity: 100};
+  assert.equal(calculate(x).ready, false);
+});
+
+test('无效参数与负重量阻止报价', () => {
+  const x = base(); x.rates = {netMargin: .6};
+  assert.equal(calculate(x).ready, false);
+  x.rates = {};
+  x.product.netWeightKg = -1;
+  assert.equal(calculate(x).ready, false);
+});
+
+test('必需的赠送螺丝仍包含净重且拆分主料', () => {
+  const x = base(); x.accessories = [{name: '赠送但组装必需螺丝', quantity: 2, unitPrice: 0, sourceType: 'user', weightKgPerUnit: .01}];
+  const q = calculate(x);
+  assert.equal(q.ready, true); near(q.weights.net, 10); near(q.weights.body, 9.98);
+});
+
+test('备用赠品不占组装净重，但随货采购成本仍计', () => {
+  const x = base(); x.accessories.push({name: '备用螺丝', quantity: 2, unitPrice: .3, sourceType: 'user', includedInNetWeight: false, weightKgPerUnit: .02});
+  const q = calculate(x);
+  assert.equal(q.ready, true); near(q.weights.body, 9.92); near(q.weights.extras, .04); near(q.costs.accessories, 3);
+});
+
+test('毛重扣包材和备用件后再拆出必需配件', () => {
+  const x = base(); delete x.product.netWeightKg; x.product.grossWeightKg = 14;
+  x.accessories.push({name: '备用件', quantity: 2, unitPrice: .3, sourceType: 'user', includedInNetWeight: false, weightKgPerUnit: .2});
+  x.weightEstimates = {packagingKg: 2.6, packagingBasis: '已知纸箱与保护材料合计'};
+  const q = calculate(x);
+  assert.equal(q.ready, true); near(q.weights.net, 11); near(q.weights.body, 10.92);
+});
+
+test('净重输入缺少配件重量不得默认零', () => {
+  const x = base(); delete x.accessories[0].weightKgPerUnit;
+  const q = calculate(x);
+  assert.equal(q.ready, false); assert.equal(q.totals, null); assert(q.issues.some(i => i.code === 'missing_accessory_weight'));
+});
+
+test('合计配件估重允许且必须有依据', () => {
+  const x = base(); x.accessories.forEach(a => delete a.weightKgPerUnit);
+  x.weightEstimates = {accessoriesKg: .2, accessoriesBasis: '规格及件数估重'};
+  assert.equal(calculate(x).ready, true);
+  delete x.weightEstimates.accessoriesBasis;
+  assert(calculate(x).issues.some(i => i.code === 'missing_weight_basis'));
+});
+
+test('逐项与合计配件重量冲突拦截', () => {
+  const x = base(); x.weightEstimates = {accessoriesKg: 1, accessoriesBasis: '合计称重'};
+  assert(calculate(x).issues.some(i => i.code === 'accessory_weight_conflict'));
+});
+
+test('负主料重量拦截', () => {
+  const x = base(); x.accessories.forEach(a => a.weightKgPerUnit = 1);
+  const q = calculate(x);
+  assert.equal(q.ready, false); assert.equal(q.totals, null); assert(q.issues.some(i => i.code === 'negative_body_weight'));
+});
+
+test('旧输入无重量口径标记拦截', () => {
+  const x = base(); delete x.product.netWeightBasis;
+  assert(calculate(x).issues.some(i => i.code === 'missing_net_weight_basis'));
+});
+
+test('旧版本体口径显式迁移', () => {
+  const x = base(); x.product.netWeightBasis = 'body';
+  const q = calculate(x);
+  assert.equal(q.ready, true); near(q.weights.net, 10.08); near(q.weights.body, 10); near(q.costs.main, 50);
+});
+
+test('无配件的空数组可明确为零', () => {
+  const x = base(); x.accessories = [];
+  const q = calculate(x);
+  assert.equal(q.ready, true); near(q.weights.body, 10); near(q.weights.accessories, 0);
+});
+
+test('只有主料分重时加回配件形成组装净重', () => {
+  const x = base(); delete x.product.netWeightKg; x.product.metalWeightKg = 10;
+  const q = calculate(x);
+  assert.equal(q.ready, true); near(q.weights.net, 10.08); near(q.weights.body, 10);
+});
+
+test('净重和明确分重可推导配件合计，不能虚构逐项', () => {
+  const x = base(); x.product.metalWeightKg = 9; x.accessories.forEach(a => delete a.weightKgPerUnit);
+  const q = calculate(x);
+  assert.equal(q.ready, true); near(q.weights.accessories, 1); near(q.weights.body, 9);
+});
+
+test('毛重仅剩备用件缺重也要拦截', () => {
+  const x = base(); delete x.product.netWeightKg; x.product.grossWeightKg = 14;
+  x.accessories.push({name: '备用件', quantity: 1, unitPrice: .3, sourceType: 'user', includedInNetWeight: false});
+  x.weightEstimates = {packagingKg: 2, packagingBasis: '包材依据'};
+  assert(calculate(x).issues.some(i => i.code === 'missing_extras_weight'));
+});
+
+test('附带件标记必须是布尔值', () => {
+  const x = base(); x.accessories[0].includedInNetWeight = 'false';
+  assert(calculate(x).issues.some(i => i.code === 'invalid_weight_membership'));
+});
+
+test('估重量需要依据，不要求价格批准', () => {
+  const x = base(); x.accessories[0].weightSourceType = 'estimate';
+  delete x.accessories[0].weightBasis; delete x.accessories[0].notes;
+  assert(calculate(x).issues.some(i => i.code === 'missing_weight_basis'));
+  x.accessories[0].weightBasis = '规格几何估重';
+  assert.equal(calculate(x).ready, true);
+});
+
+test('毛净包材重量不平衡拦截', () => {
+  const x = base(); x.product.grossWeightKg = 14; x.weightEstimates = {packagingKg: 2, packagingBasis: '包材称重'};
+  assert(calculate(x).issues.some(i => i.code === 'gross_weight_balance'));
+});
+
+test('用量变化同步改变主料、配件及喷涂', () => {
+  const x = base(); const before = calculate(x); x.accessories[0].quantity = 12; const after = calculate(x);
+  assert.equal(after.ready, true);
+  near(after.weights.body, before.weights.body - .02);
+  near(after.costs.main, before.costs.main - .1);
+  near(after.costs.coating, before.costs.coating - .05);
+  near(after.costs.accessories, before.costs.accessories + .4);
+});
+
+test('124×63×22外箱的EPS上下各121×60整片', () => {
+  const x = base(); x.product.cartonDimensions = {length: 124, width: 63, height: 22, unit: 'cm'}; x.packaging.requireTopBottomEps = true;
+  x.packaging.protection = [{name: '上下整片', material: 'EPS', quantity: 2, pricing: 'volume', dimensions: {length: 121, width: 60, height: 1.5, unit: 'cm'}, templateKey: 'eps-15-volume'}];
+  const q = calculate(x);
+  assert.equal(q.ready, true); near(q.costs.protection, 9.2565); near(q.epsCoverage.fullPanelsPerCarton, 2);
+});
+
+test('四条10×60窄条不能替代两张上下整片', () => {
+  const x = base(); x.product.cartonDimensions = {length: 124, width: 63, height: 22, unit: 'cm'}; x.packaging.requireTopBottomEps = true;
+  x.packaging.protection = [{name: '窄条', material: 'EPS', quantity: 4, pricing: 'volume', dimensions: {length: 10, width: 60, height: 1.5, unit: 'cm'}, templateKey: 'eps-15-volume'}];
+  const q = calculate(x);
+  assert.equal(q.ready, false); assert(q.issues.some(i => i.code === 'insufficient_eps_coverage')); assert.equal(q.totals, null);
+});
+
+test('完整EPS只有一张也拦截', () => {
+  const x = base(); x.packaging.requireTopBottomEps = true;
+  x.packaging.protection = [{name: '单片', material: 'EPS', quantity: 1, pricing: 'volume', dimensions: {length: 126, width: 30, height: 1.5, unit: 'cm'}, templateKey: 'eps-15-volume'}];
+  assert.equal(calculate(x).ready, false);
+});
+
+test('多件一箱EPS按每箱至少两张核对', () => {
+  const x = base(); x.order = {unitsPerCarton: 2}; x.packaging.requireTopBottomEps = true;
+  x.packaging.protection = [{name: '整片', material: 'EPS', quantity: 1, pricing: 'volume', dimensions: {length: 30, width: 126, height: 1.5, unit: 'cm'}, templateKey: 'eps-15-volume'}];
+  assert.equal(calculate(x).ready, true);
+});
+
+test('缺少EPS默认拦截，明确替代方案必须有依据', () => {
+  const x = base(); delete x.packaging.requireTopBottomEps;
+  assert.equal(calculate(x).ready, false);
+  x.packaging.requireTopBottomEps = false; delete x.packaging.epsExceptionBasis;
+  assert.equal(calculate(x).ready, false);
+  x.packaging.epsExceptionBasis = '用户明确使用其他完整上下缓冲包装';
+  assert.equal(calculate(x).ready, true);
+});
+
+test('18.55组装净重保留四轮，纯金属不虚构木材', () => {
+  const x = base(); x.product.netWeightKg = 18.55;
+  x.accessories = [{name: '轮子', quantity: 4, unitPrice: 8.5, sourceType: 'user', weightKgPerUnit: .65}];
+  x.woodPieces = [{length: 999, width: 999, unit: 'cm'}];
+  const q = calculate(x);
+  assert.equal(q.ready, true); near(q.weights.net, 18.55); near(q.weights.body, 15.95); near(q.weights.wood, 0);
+  assert.deepEqual(q.woodPieces, []); assert(!q.assumptions.some(s => s.includes('木件')));
+});
+
+/* ------------------------------------------------------------------ *
+ * 3.0.0 新增：blockingIssues / draftOnly 与问题分类
+ * ------------------------------------------------------------------ */
+
+const BLOCKING_KEYS = ['code', 'draftAllowed', 'message', 'severity'];
+const CATEGORIES = new Set(['weight', 'dimensions', 'packaging', 'input']);
+
+test('3.0.0 版本与常量保持旧口径', () => {
+  assert.equal(VERSION, '3.0.1');
+  assert.equal(PROCESSING_RATE_PER_KG, 3);
+  assert.deepEqual({...DEFAULT_RATES}, {metal: 5, wood: 5, coating: 2.5, carton: 4.2, tax: 0.1, netMargin: 0.085, managementToProfit: 0.9});
+  assert.deepEqual(FIXED_PACKAGING.map(x => [x.name, x.quantity, x.unitPrice]), [['条形码/贴标', 1, 1.5], ['说明书', 1, 2.5], ['护角', 8, .2], ['装柜人工', 1, 1.5], ['包装人工', 1, 5]]);
+  assert(DEFAULT_RATES && Object.isFrozen(DEFAULT_RATES));
+  assert.match(quoteDate(), /^\d{4}-\d{2}-\d{2}$/);
+  assert.equal(calculate(base()).version, '3.0.1');
+});
+
+test('ready 与 blockingIssues 完全对齐，warning 不进 blockingIssues', () => {
+  assert.equal(calculate(base()).ready, true);
+  assert.equal(calculate(base()).draftOnly, false);
+  const x = base(); x.rates = {netMargin: .12}; // 超 7%～10%，仅 warning
+  const q = calculate(x);
+  assert(q.issues.some(i => i.code === 'margin_range' && i.severity === 'warning'));
+  assert.equal(q.blockingIssues.length, 0);
+  assert.equal(q.ready, true);
+  assert.equal(q.draftOnly, false);
+  const bad = calculate({...base(), rates: {netMargin: .6}});
+  assert.equal(bad.blockingIssues.length, bad.issues.filter(i => i.severity === 'blocking').length);
+  assert.equal(bad.ready, false);
+});
+
+test('blockingIssues 条目形状固定且 severity 属于四类', () => {
+  const scenarios = [];
+  const missPrice = base(); missPrice.accessories.push({name: '脚垫', quantity: 4, weightKgPerUnit: .01});
+  scenarios.push(missPrice);
+  const weight = base(); weight.product.grossWeightKg = 9; scenarios.push(weight);
+  const dims = base(); delete dims.product.dimensions; scenarios.push(dims);
+  const pack = base(); pack.packaging.requireTopBottomEps = true; scenarios.push(pack);
+  const rejected = base(); rejected.accessories.push({name: '脚垫', quantity: 4, unitPrice: .5, sourceType: 'estimate', weightKgPerUnit: .01}); scenarios.push(rejected);
+  for (const sc of scenarios) {
+    const q = calculate(sc);
+    assert.equal(q.ready, false);
+    assert(q.blockingIssues.length > 0);
+    for (const bi of q.blockingIssues) {
+      assert.deepEqual(Object.keys(bi).sort(), BLOCKING_KEYS);
+      assert(CATEGORIES.has(bi.severity), `unexpected severity ${bi.severity}`);
+      assert.equal(typeof bi.message, 'string');
+      assert.equal(typeof bi.draftAllowed, 'boolean');
+    }
+  }
+});
+
+test('仅缺价时 draftOnly=true，且只允许 missing_price 草稿导出', () => {
+  const x = base(); x.accessories.push({name: '脚垫', spec: '直径30mm', quantity: 4, weightKgPerUnit: .01});
+  const q = calculate(x);
+  assert.equal(q.ready, false);
+  assert.equal(q.draftOnly, true);
+  assert(q.blockingIssues.length > 0);
+  assert(q.blockingIssues.every(i => i.code === 'missing_price'));
+  assert(q.blockingIssues.every(i => i.severity === 'input'));
+  assert(q.blockingIssues.every(i => i.draftAllowed === true));
+  // 旧字段 issues 仍在，blocking 级只有缺价
+  assert.deepEqual(q.issues.filter(i => i.severity === 'blocking').map(i => i.code), ['missing_price']);
+  // 多个缺价仍只算可草稿
+  x.accessories.push({name: '脚垫2', quantity: 2, weightKgPerUnit: .01});
+  const q2 = calculate(x);
+  assert.equal(q2.draftOnly, true);
+  assert.equal(q2.issues.filter(i => i.code === 'missing_price').length, 2);
+});
+
+test('重量矛盾归类 weight，draftOnly=false（草稿不得放行）', () => {
+  const x = base(); x.product.grossWeightKg = 9; // 毛重 < 组装净重
+  const q = calculate(x);
+  assert.equal(q.ready, false);
+  assert.equal(q.draftOnly, false);
+  const bi = q.blockingIssues.find(i => i.code === 'gross_below_net');
+  assert(bi); assert.equal(bi.severity, 'weight'); assert.equal(bi.draftAllowed, false);
+  // 配件重量冲突也是 weight
+  const y = base(); y.weightEstimates = {accessoriesKg: 1, accessoriesBasis: '合计称重'};
+  const qy = calculate(y);
+  const conflict = qy.blockingIssues.find(i => i.code === 'accessory_weight_conflict');
+  assert(conflict); assert.equal(conflict.severity, 'weight'); assert.equal(conflict.draftAllowed, false);
+});
+
+test('尺寸缺失归类 dimensions，draftOnly=false', () => {
+  const x = base(); delete x.product.dimensions;
+  const q = calculate(x);
+  assert.equal(q.ready, false);
+  assert.equal(q.draftOnly, false);
+  const bi = q.blockingIssues.find(i => i.code === 'product_dimensions');
+  assert(bi); assert.equal(bi.severity, 'dimensions'); assert.equal(bi.draftAllowed, false);
+  const y = base(); delete y.product.cartonDimensions;
+  const qy = calculate(y);
+  const cb = qy.blockingIssues.find(i => i.code === 'carton_dimensions');
+  assert(cb); assert.equal(cb.severity, 'dimensions'); assert.equal(cb.draftAllowed, false);
+});
+
+test('包装不完整归类 packaging，draftOnly=false', () => {
+  const x = base(); x.packaging.requireTopBottomEps = true; x.packaging.protection = [];
+  const q = calculate(x);
+  assert.equal(q.ready, false);
+  assert.equal(q.draftOnly, false);
+  const bi = q.blockingIssues.find(i => i.code === 'insufficient_eps_coverage');
+  assert(bi); assert.equal(bi.severity, 'packaging'); assert.equal(bi.draftAllowed, false);
+  // 免责依据缺失同样是 packaging
+  const y = base(); y.packaging.requireTopBottomEps = false; delete y.packaging.epsExceptionBasis;
+  const qy = calculate(y);
+  const ex = qy.blockingIssues.find(i => i.code === 'missing_eps_exception');
+  assert(ex); assert.equal(ex.severity, 'packaging'); assert.equal(ex.draftAllowed, false);
+});
+
+test('旧版 P0：input.allowDraft 不能放行非缺价问题', () => {
+  const x = base(); x.allowDraft = true;
+  x.accessories.push({name: '脚垫', quantity: 4, weightKgPerUnit: .01}); // 缺价（可草稿）
+  x.product.grossWeightKg = 9; // 重量矛盾（不可草稿）
+  const q = calculate(x);
+  assert.equal(q.ready, false);
+  assert.equal(q.draftOnly, false);
+  assert(q.blockingIssues.some(i => i.code === 'missing_price' && i.draftAllowed === true));
+  assert(q.blockingIssues.some(i => i.code === 'gross_below_net' && i.draftAllowed === false));
+  // calculate 不接收 allowDraft：allowDraft 只作为普通多余输入，不改变结果
+  const q2 = calculate({...base(), allowDraft: true, product: {...base().product, grossWeightKg: 9}});
+  assert.equal(q2.draftOnly, false);
+  assert.equal(q2.totals, null);
+});
+
+test('未确认暂估价与待核证据不属于缺价草稿放行范围', () => {
+  const estimate = base();
+  estimate.accessories.push({name: '脚垫', quantity: 4, unitPrice: .5, sourceType: 'estimate', weightKgPerUnit: .01});
+  const qe = calculate(estimate);
+  assert.equal(qe.draftOnly, false);
+  const ei = qe.blockingIssues.find(i => i.code === 'estimated_price');
+  assert(ei); assert.equal(ei.draftAllowed, false); assert.equal(ei.severity, 'input');
+  const pending = base();
+  pending.accessories.push({name: '脚垫', quantity: 4, weightKgPerUnit: .01, sourceType: 'pending'}); // 显式待核价
+  const qp = calculate(pending);
+  assert.equal(qp.draftOnly, true);
+});

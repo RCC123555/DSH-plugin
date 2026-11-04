@@ -1,0 +1,38 @@
+{
+  "capturedAt": "2026-11-04T08:40:07.332Z",
+  "driver": {
+    "node": "v24.21.0",
+    "platform": "win32-x64",
+    "chrome": "Chrome/156.0.8078.80",
+    "port": 19222
+  },
+  "loggedIn": true,
+  "sourceOffer": "https://detail.1688.com/offer/782671210980.html",
+  "sourceOfferFixture": "live-offer-782671210980.json",
+  "note": "该文件由真实详情 fixture 用当前证据层重建；validated=false 表示按结构化规格/套装规则被拒绝，属预期行为。",
+  "demandSample": 500,
+  "validated": false,
+  "issues": [
+    "所选规格尚未核对匹配"
+  ],
+  "evidence": {
+    "url": "https://detail.1688.com/offer/782671210980.html",
+    "supplier": "深圳市小罗师科技有限公司",
+    "title": "304不锈钢十字头小螺丝PM圆头机丝电子螺丝盘头机牙螺钉M4M5M3M6",
+    "selectedSpec": "M6*15",
+    "quoteUnit": "个",
+    "targetUnit": "个",
+    "observedText": "真实详情页显示规格 M6*15 的价格文本 ¥0.20，起订 ≥100个",
+    "queriedAt": "2026-11-04",
+    "evidenceKind": "visible_dom",
+    "searchMethod": "keyword",
+    "keywords": "内六角法兰盘螺丝 M6*15",
+    "specMatchReason": "头型不符：要求内六角，候选为十字；要求法兰面，候选为圆头/盘头",
+    "currency": "CNY",
+    "priceKind": "regular",
+    "originalPrice": 0.2,
+    "targetUnitsPerQuoteUnit": 1,
+    "minOrderQty": 100,
+    "tierMinQty": 100
+  }
+}

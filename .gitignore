@@ -1,0 +1,20 @@
+# 开发临时/中间产物（报价输出、试验目录）
+_scratch/
+output/
+work/
+tmp/
+
+# Node / Python 缓存
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+.pnpm-store/
+
+# 生成物与日志
+*.log
+Thumbs.db
+.DS_Store
+
+# 本机插件运行状态（登录态等，绝不入库）
+.dsh-state/

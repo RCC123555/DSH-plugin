@@ -1,0 +1,421 @@
+{
+  "note": "真实页面 window.context.result.data 的剪裁版本（只保留 extractOfferFromContext 读取的路径，值未改写）。",
+  "capturedAt": "2026-11-04T08:27:34.025Z",
+  "sourceUrl": "https://detail.1688.com/offer/721403962321.html",
+  "pageTitle": "铁艺餐桌脚茶几沙发脚三线铁线脚 家具五金配件批发三角支架桌腿 - 阿里巴巴",
+  "driver": {
+    "node": "v24.21.0",
+    "chrome": "Chrome/156.0.8078.80",
+    "port": 19222
+  },
+  "data": {
+    "Root": {
+      "fields": {
+        "dataJson": {
+          "skuModel": {
+            "skuProps": [
+              {
+                "fid": 1234,
+                "prop": "规格",
+                "value": [
+                  {
+                    "name": "4寸10cm"
+                  },
+                  {
+                    "name": "6寸15cm"
+                  },
+                  {
+                    "name": "8寸20cm"
+                  },
+                  {
+                    "name": "10寸25cm"
+                  },
+                  {
+                    "name": "12寸30cm"
+                  },
+                  {
+                    "name": "14寸35cm"
+                  },
+                  {
+                    "name": "16寸40cm"
+                  },
+                  {
+                    "name": "18寸45cm"
+                  },
+                  {
+                    "name": "20寸50cm"
+                  },
+                  {
+                    "name": "22寸55cm"
+                  },
+                  {
+                    "name": "24寸61cm"
+                  },
+                  {
+                    "name": "26寸66cm"
+                  },
+                  {
+                    "name": "28寸71cm"
+                  },
+                  {
+                    "name": "30寸76cm"
+                  },
+                  {
+                    "name": "32寸81cm"
+                  },
+                  {
+                    "name": "34寸86cm"
+                  },
+                  {
+                    "name": "36寸91cm"
+                  },
+                  {
+                    "name": "38寸96cm"
+                  },
+                  {
+                    "name": "40寸101cm"
+                  }
+                ]
+              },
+              {
+                "fid": 404,
+                "prop": "颜色",
+                "value": [
+                  {
+                    "name": "黑色"
+                  }
+                ]
+              }
+            ],
+            "skuInfoMap": {
+              "24寸61cm&gt;黑色": {
+                "specId": "beca38aafc2a0733f4a7e38890836e00",
+                "saleCount": 0,
+                "discountPrice": "15.30",
+                "canBookCount": 99626,
+                "specAttrs": "24寸61cm&gt;黑色",
+                "price": "15.30",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920069,
+                "isPromotionSku": true
+              },
+              "22寸55cm&gt;黑色": {
+                "specId": "a04bf7508bb79fb7d2fec01caa7fbde4",
+                "saleCount": 0,
+                "discountPrice": "14.20",
+                "canBookCount": 99599,
+                "specAttrs": "22寸55cm&gt;黑色",
+                "price": "14.20",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920068,
+                "isPromotionSku": true
+              },
+              "38寸96cm&gt;黑色": {
+                "specId": "4ac3d6fa56340de27f46459565b2962d",
+                "saleCount": 0,
+                "discountPrice": "20.80",
+                "canBookCount": 99930,
+                "specAttrs": "38寸96cm&gt;黑色",
+                "price": "20.80",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920076,
+                "isPromotionSku": true
+              },
+              "18寸45cm&gt;黑色": {
+                "specId": "f16e3a0cd2e513c85b005455e4748967",
+                "saleCount": 0,
+                "discountPrice": "10.80",
+                "canBookCount": 98275,
+                "specAttrs": "18寸45cm&gt;黑色",
+                "price": "10.80",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920066,
+                "isPromotionSku": true
+              },
+              "40寸101cm&gt;黑色": {
+                "specId": "943927358f871565d7e419f201eb1932",
+                "saleCount": 0,
+                "discountPrice": "22.20",
+                "canBookCount": 99620,
+                "specAttrs": "40寸101cm&gt;黑色",
+                "price": "22.20",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920077,
+                "isPromotionSku": true
+              },
+              "36寸91cm&gt;黑色": {
+                "specId": "cdcfd12046424b1be69342f61afe751d",
+                "saleCount": 0,
+                "discountPrice": "20.20",
+                "canBookCount": 99835,
+                "specAttrs": "36寸91cm&gt;黑色",
+                "price": "20.20",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920075,
+                "isPromotionSku": true
+              },
+              "20寸50cm&gt;黑色": {
+                "specId": "c603264591cf6defa7a1bd906e20ecc3",
+                "saleCount": 0,
+                "discountPrice": "12.20",
+                "canBookCount": 98667,
+                "specAttrs": "20寸50cm&gt;黑色",
+                "price": "12.20",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920067,
+                "isPromotionSku": true
+              },
+              "10寸25cm&gt;黑色": {
+                "specId": "37b4444cc7d321592e66889bd1c73c28",
+                "saleCount": 0,
+                "discountPrice": "8.00",
+                "canBookCount": 99834,
+                "specAttrs": "10寸25cm&gt;黑色",
+                "price": "8.00",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920062,
+                "isPromotionSku": true
+              },
+              "28寸71cm&gt;黑色": {
+                "specId": "1ac1c5a41e22312dda847dca1b534ea4",
+                "saleCount": 0,
+                "discountPrice": "16.00",
+                "canBookCount": 92379,
+                "specAttrs": "28寸71cm&gt;黑色",
+                "price": "16.00",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920071,
+                "isPromotionSku": true
+              },
+              "6寸15cm&gt;黑色": {
+                "specId": "088b694b210a83137a862085dee601eb",
+                "saleCount": 0,
+                "discountPrice": "6.50",
+                "canBookCount": 99707,
+                "specAttrs": "6寸15cm&gt;黑色",
+                "price": "6.50",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920060,
+                "isPromotionSku": true
+              },
+              "30寸76cm&gt;黑色": {
+                "specId": "afae9f55b3a69995bd908dc2186ad231",
+                "saleCount": 0,
+                "discountPrice": "17.80",
+                "canBookCount": 96557,
+                "specAttrs": "30寸76cm&gt;黑色",
+                "price": "17.80",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920072,
+                "isPromotionSku": true
+              },
+              "16寸40cm&gt;黑色": {
+                "specId": "fd1db0481bcbbd6964f3916f02b54823",
+                "saleCount": 0,
+                "discountPrice": "10.00",
+                "canBookCount": 98297,
+                "specAttrs": "16寸40cm&gt;黑色",
+                "price": "10.00",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920065,
+                "isPromotionSku": true
+              },
+              "4寸10cm&gt;黑色": {
+                "specId": "6997240d6b928f1ab22bebd7ad920983",
+                "saleCount": 0,
+                "discountPrice": "5.80",
+                "canBookCount": 73538,
+                "specAttrs": "4寸10cm&gt;黑色",
+                "price": "5.80",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920059,
+                "isPromotionSku": true
+              },
+              "32寸81cm&gt;黑色": {
+                "specId": "ae60b3193d41fcb58c185b3f8feb8193",
+                "saleCount": 0,
+                "discountPrice": "18.80",
+                "canBookCount": 99783,
+                "specAttrs": "32寸81cm&gt;黑色",
+                "price": "18.80",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920073,
+                "isPromotionSku": true
+              },
+              "34寸86cm&gt;黑色": {
+                "specId": "01f185e9875fed6951a3148e4301c5fc",
+                "saleCount": 0,
+                "discountPrice": "19.20",
+                "canBookCount": 99734,
+                "specAttrs": "34寸86cm&gt;黑色",
+                "price": "19.20",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920074,
+                "isPromotionSku": true
+              },
+              "8寸20cm&gt;黑色": {
+                "specId": "c8b32c0a36aabad8a07d42d14a58800a",
+                "saleCount": 0,
+                "discountPrice": "7.20",
+                "canBookCount": 99056,
+                "specAttrs": "8寸20cm&gt;黑色",
+                "price": "7.20",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920061,
+                "isPromotionSku": true
+              },
+              "26寸66cm&gt;黑色": {
+                "specId": "2869010b92d5b68eb8aa97bfaf8e9283",
+                "saleCount": 0,
+                "discountPrice": "15.80",
+                "canBookCount": 99861,
+                "specAttrs": "26寸66cm&gt;黑色",
+                "price": "15.80",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920070,
+                "isPromotionSku": true
+              },
+              "12寸30cm&gt;黑色": {
+                "specId": "05bbba77f95e294aeedfefd16609adf5",
+                "saleCount": 0,
+                "discountPrice": "8.60",
+                "canBookCount": 98894,
+                "specAttrs": "12寸30cm&gt;黑色",
+                "price": "8.60",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920063,
+                "isPromotionSku": true
+              },
+              "14寸35cm&gt;黑色": {
+                "specId": "422bce8e53bb30b4fc7a4b399d6a45f6",
+                "saleCount": 0,
+                "discountPrice": "9.50",
+                "canBookCount": 99244,
+                "specAttrs": "14寸35cm&gt;黑色",
+                "price": "9.50",
+                "priceAmount": 4,
+                "retailPrice": "",
+                "skuId": 5018750920064,
+                "isPromotionSku": true
+              }
+            }
+          },
+          "orderParamModel": {
+            "orderParam": {
+              "saledCount": 4182,
+              "mixParam": {
+                "mixNum": 4,
+                "mixAmount": 50,
+                "shopMixNum": 2147483647,
+                "mixBegin": 0,
+                "supportMix": true
+              },
+              "limitParam": {},
+              "beginNum": 4,
+              "canBookedAmount": 1852436,
+              "skuParam": {
+                "skuPriceType": "skuPrice",
+                "skuRangePrices": [
+                  {
+                    "price": "5.80",
+                    "beginAmount": "4"
+                  },
+                  {
+                    "price": "22.20",
+                    "beginAmount": "4"
+                  }
+                ]
+              },
+              "flow": "general",
+              "addCartParam": {
+                "cartType": ""
+              },
+              "supportOnePieceRetail": false
+            }
+          },
+          "tempModel": {
+            "companyName": "佛山市南海区亿长明五金厂"
+          },
+          "offerBaseInfo": {
+            "sellerLoginId": "亿长明五金厂",
+            "sellerMemberId": "b2b-22158558998106b10e",
+            "offerId": 721403962321
+          }
+        }
+      }
+    },
+    "productTitle": {
+      "fields": {
+        "title": "铁艺餐桌脚茶几沙发脚三线铁线脚 家具五金配件批发三角支架桌腿",
+        "shopInfo": {
+          "companyName": "佛山市南海区亿长明五金厂",
+          "authCompanyName": "佛山市南海区亿长明五金厂"
+        },
+        "unit": "个",
+        "saleNum": "4100+"
+      }
+    },
+    "gallery": {
+      "fields": {
+        "subject": "铁艺餐桌脚茶几沙发脚三线铁线脚 家具五金配件批发三角支架桌腿"
+      }
+    },
+    "mainPrice": {
+      "fields": {
+        "priceModel": {
+          "originalPriceDisplay": "5.80-22.20",
+          "originalPrices": [
+            {
+              "displayStyle": "line_price",
+              "price": "5.80",
+              "beginAmount": 4
+            },
+            {
+              "displayStyle": "line_price",
+              "price": "22.20",
+              "beginAmount": 4
+            }
+          ],
+          "priceDisplayType": "skuPrice",
+          "currentPrices": [
+            {
+              "price": "5.80",
+              "beginAmount": 4
+            },
+            {
+              "price": "22.20",
+              "beginAmount": 4
+            }
+          ],
+          "onePiecePriceExp": false,
+          "priceLabel": ""
+        },
+        "unit": "个"
+      }
+    },
+    "productAttributes": {
+      "fields": {},
+      "meta": {
+        "errorMessage": "class com.alibaba.fastjson.JSONArray cannot be cast to class com.alibaba.fastjson.JSONObject (com.alibaba.fastjson.JSONArray and com.alibaba.fastjson.JSONObject are in unnamed module of loader io.pandora.classloader.LaunchedURLClassLoader @1857fe2)"
+      }
+    }
+  }
+}

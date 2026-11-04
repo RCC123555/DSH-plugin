@@ -1,0 +1,10 @@
+# Insert the 五金产品报价 (hardware-quote) plugin: one bundled skill plus the
+# hwq_* tool family (pricing engine, two-sheet Excel quote export, and 1688
+# login/search/offer evidence collection through a persistent local Chrome).
+#
+# The loader row specifier MUST equal package.json `name`
+# (`hardware-quote-dsh-plugin`): the loader imports this specifier from the
+# profile's node_modules, and the row id is the stable composition key.
+- insert:
+    - id: hardware-quote
+      name: "hardware-quote-dsh-plugin"

@@ -1,0 +1,98 @@
+{
+  "product": {
+    "name": "铁艺餐桌 120×80×75（真实1688配件价演示）",
+    "sku": "DEMO-REAL-EVIDENCE",
+    "date": "2026-11-04",
+    "material": "metal",
+    "netWeightKg": 18,
+    "netWeightBasis": "assembled",
+    "dimensions": {
+      "length": 120,
+      "width": 80,
+      "height": 75,
+      "unit": "cm"
+    },
+    "cartonDimensions": {
+      "length": 124,
+      "width": 84,
+      "height": 20,
+      "unit": "cm"
+    },
+    "images": []
+  },
+  "order": {
+    "quantity": 500,
+    "unitsPerCarton": 1
+  },
+  "processing": {
+    "needsCoating": true
+  },
+  "woodPieces": [],
+  "accessories": [
+    {
+      "name": "铁艺餐桌脚",
+      "spec": "4寸10cm > 黑色",
+      "unit": "个",
+      "quantity": 4,
+      "unitPrice": 5.8,
+      "sourceType": "web",
+      "provider": "1688",
+      "url": "https://detail.1688.com/offer/721403962321.html",
+      "queriedAt": "2026-11-04",
+      "quoteUnit": "个",
+      "minOrderQty": 4,
+      "priceTierMinQty": 4,
+      "priceEvidence": {
+        "url": "https://detail.1688.com/offer/721403962321.html",
+        "supplier": "佛山市南海区亿长明五金厂",
+        "title": "铁艺餐桌脚茶几沙发脚三线铁线脚 家具五金配件批发三角支架桌腿",
+        "selectedSpec": "4寸10cm > 黑色",
+        "quoteUnit": "个",
+        "targetUnit": "个",
+        "observedText": "真实详情页显示规格 4寸10cm > 黑色 的价格文本 ¥5.80，起订 ≥4个",
+        "queriedAt": "2026-11-04",
+        "evidenceKind": "visible_dom",
+        "searchMethod": "keyword",
+        "keywords": "铁艺餐桌脚",
+        "specMatched": true,
+        "currency": "CNY",
+        "priceKind": "regular",
+        "originalPrice": 5.8,
+        "targetUnitsPerQuoteUnit": 1,
+        "minOrderQty": 4,
+        "tierMinQty": 4
+      },
+      "weightKgPerUnit": 0.9,
+      "weightSourceType": "estimate",
+      "weightBasis": "按同类三线铁艺桌脚约 0.9kg/只 估算（未称重，需复核）",
+      "notes": "真实详情页：https://detail.1688.com/offer/721403962321.html（供应商 佛山市南海区亿长明五金厂），¥5.8/个，起订 ≥4个。"
+    }
+  ],
+  "packaging": {
+    "requireTopBottomEps": true,
+    "topBottomClearanceCm": 3,
+    "protection": [
+      {
+        "name": "EPS上下整片",
+        "material": "EPS",
+        "spec": "15kg/m3、1.5cm厚",
+        "quantity": 2,
+        "pricing": "volume",
+        "dimensions": {
+          "length": 121,
+          "width": 81,
+          "height": 1.5,
+          "unit": "cm"
+        },
+        "densityKgM3": 15,
+        "templateKey": "eps-15-volume",
+        "notes": "采用原表425元/m³参考，非实时1688价格"
+      }
+    ]
+  },
+  "assumptions": [
+    "配件价来自真实抓取的 1688 详情页证据（铁艺餐桌脚 ¥5.80/个，起订≥4个），未编造。",
+    "桌脚单只重量 0.9kg 为估算值，非称重数据；组装净重 18kg 为演示输入。",
+    "产品本身为结构演示样例，用于验证「真实证据价 → 核算 → 两页 Excel」链路，不代表可对外报价的真实商品。"
+  ]
+}

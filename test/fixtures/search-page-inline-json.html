@@ -1,0 +1,37 @@
+<!--
+  合成 fixture：只用于 parseSearchHtml 内嵌 JSON 分支的离线单测。
+  这不是真实采集数据：商品 ID / 标题 / 价格 / 公司名均为测试占位值。
+  真实搜索页由 JS 渲染，离线测试无法复现登录态与搜索结果，故用此最小样本覆盖解析分支。
+-->
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>1688 搜索（合成 fixture）</title></head>
+  <body>
+    <script>
+      window.__INIT_DATA__ = {
+        "data": {
+          "offerList": [
+            {
+              "offerId": "100000000001",
+              "subject": "合成测试商品甲 内六角法兰盘螺丝 M6*15",
+              "price": "12.50",
+              "unit": "个",
+              "beginNum": 100,
+              "companyName": "合成测试五金厂",
+              "saledCount": 3200
+            },
+            {
+              "offerId": "100000000002",
+              "subject": "合成测试商品乙 铁艺沙发脚",
+              "detailUrl": "https://detail.1688.com/offer/100000000002.html",
+              "price": "8.80",
+              "unit": "个",
+              "minOrderQuantity": 50,
+              "companyName": "合成测试家具配件厂"
+            }
+          ]
+        }
+      };
+    </script>
+  </body>
+</html>

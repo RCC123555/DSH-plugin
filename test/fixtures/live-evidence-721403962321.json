@@ -1,0 +1,36 @@
+{
+  "capturedAt": "2026-11-04T08:40:07.324Z",
+  "driver": {
+    "node": "v24.21.0",
+    "platform": "win32-x64",
+    "chrome": "Chrome/156.0.8078.80",
+    "port": 19222
+  },
+  "loggedIn": false,
+  "sourceOffer": "https://detail.1688.com/offer/721403962321.html",
+  "sourceOfferFixture": "live-offer-721403962321.json",
+  "note": "该文件由真实详情 fixture 用当前证据层重建；validated=false 表示按结构化规格/套装规则被拒绝，属预期行为。",
+  "demandSample": 500,
+  "validated": true,
+  "issues": [],
+  "evidence": {
+    "url": "https://detail.1688.com/offer/721403962321.html",
+    "supplier": "佛山市南海区亿长明五金厂",
+    "title": "铁艺餐桌脚茶几沙发脚三线铁线脚 家具五金配件批发三角支架桌腿",
+    "selectedSpec": "4寸10cm > 黑色",
+    "quoteUnit": "个",
+    "targetUnit": "个",
+    "observedText": "真实详情页显示规格 4寸10cm > 黑色 的价格文本 ¥5.80，起订 ≥4个",
+    "queriedAt": "2026-11-04",
+    "evidenceKind": "visible_dom",
+    "searchMethod": "keyword",
+    "keywords": "铁艺餐桌脚",
+    "specMatched": true,
+    "currency": "CNY",
+    "priceKind": "regular",
+    "originalPrice": 5.8,
+    "targetUnitsPerQuoteUnit": 1,
+    "minOrderQty": 4,
+    "tierMinQty": 4
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "hardware-quote-dsh-plugin",
+  "version": "3.0.1",
+  "description": "五金产品报价 for DeepSeek Harness: 识图/尺寸/重量驱动的铁木五金产品核价与两页 Excel 报价输出，内置 1688 自动登录查价与证据均价（hwq_* 工具 + hardware-quote skill）。",
+  "type": "module",
+  "main": "./lib/index.mjs",
+  "exports": {
+    ".": "./lib/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RCC123555/DSH-plugin.git"
+  },
+  "files": [
+    "lib/",
+    "python/",
+    "skill/",
+    "cordis.patch.yml",
+    "CONTRACT.md"
+  ],
+  "dsh": {
+    "engines": {
+      "dsh": ">=0.1.2"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

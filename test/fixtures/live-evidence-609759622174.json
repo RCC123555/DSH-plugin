@@ -1,0 +1,40 @@
+{
+  "capturedAt": "2026-11-04T08:40:07.335Z",
+  "driver": {
+    "node": "v24.21.0",
+    "platform": "win32-x64",
+    "chrome": "Chrome/156.0.8078.80",
+    "port": 19222
+  },
+  "loggedIn": true,
+  "sourceOffer": "https://detail.1688.com/offer/609759622174.html",
+  "sourceOfferFixture": "live-offer-609759622174.json",
+  "note": "该文件由真实详情 fixture 用当前证据层重建；validated=false 表示按结构化规格/套装规则被拒绝，属预期行为。",
+  "demandSample": 500,
+  "validated": false,
+  "issues": [
+    "所选规格尚未核对匹配",
+    "不得采用起始价、样品价、首单价或优惠券价"
+  ],
+  "evidence": {
+    "url": "https://detail.1688.com/offer/609759622174.html",
+    "supplier": "兴化市天卓不锈钢有限公司",
+    "title": "304不锈钢平头内六角螺丝钉沉头螺栓螺母套装大全MM2M3M4M5M6-M16",
+    "selectedSpec": "M10*40-1套",
+    "quoteUnit": "件",
+    "targetUnit": "件",
+    "observedText": "真实详情页显示规格 M10*40-1套 的价格文本 ¥1.82，起订 ≥1件",
+    "queriedAt": "2026-11-04",
+    "evidenceKind": "visible_dom",
+    "searchMethod": "keyword",
+    "keywords": "内六角法兰盘螺丝 M6*15",
+    "specMatchReason": "套装/组合件价格，不能当单颗价；螺纹规格不符：要求 M6，候选为 M10；长度规格不符：要求 15，候选为 40；头型不符：要求法兰面，候选为沉头/平头",
+    "currency": "CNY",
+    "priceKind": "bundle",
+    "priceKindNote": "套装/组合件价格，不能当单颗价",
+    "originalPrice": 1.82,
+    "targetUnitsPerQuoteUnit": 1,
+    "minOrderQty": 1,
+    "tierMinQty": 1
+  }
+}

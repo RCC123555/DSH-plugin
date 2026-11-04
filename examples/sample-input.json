@@ -1,0 +1,56 @@
+{
+  "product": {
+    "name": "合成演示金属架_非真实商品报价",
+    "sku": "DEMO-ONLY",
+    "date": "2026-11-04",
+    "material": "metal",
+    "netWeightKg": 10,
+    "netWeightBasis": "assembled",
+    "dimensions": { "length": 120, "width": 60, "height": 75, "unit": "cm" },
+    "cartonDimensions": { "length": 124, "width": 63, "height": 22, "unit": "cm" },
+    "images": []
+  },
+  "order": { "quantity": 500, "unitsPerCarton": 1 },
+  "processing": { "needsCoating": true },
+  "woodPieces": [],
+  "accessories": [
+    {
+      "name": "内六角法兰面螺丝",
+      "spec": "M6×15MM",
+      "unit": "个",
+      "quantity": 8,
+      "templateKey": "m6-flange-screw",
+      "weightKgPerUnit": 0.004,
+      "weightSourceType": "estimate",
+      "weightBasis": "合成演示夹具4g/个，不是实测"
+    },
+    {
+      "name": "螺母",
+      "spec": "M6",
+      "unit": "个",
+      "quantity": 8,
+      "templateKey": "m6-nut",
+      "weightKgPerUnit": 0.002,
+      "weightSourceType": "estimate",
+      "weightBasis": "合成演示夹具2g/个，不是实测"
+    }
+  ],
+  "packaging": {
+    "requireTopBottomEps": true,
+    "topBottomClearanceCm": 3,
+    "protection": [
+      {
+        "name": "EPS上下整片",
+        "material": "EPS",
+        "spec": "15kg/m3、1.5cm厚",
+        "quantity": 2,
+        "pricing": "volume",
+        "dimensions": { "length": 121, "width": 60, "height": 1.5, "unit": "cm" },
+        "densityKgM3": 15,
+        "templateKey": "eps-15-volume",
+        "notes": "采用原表425元/m³参考，非实时1688价格"
+      }
+    ]
+  },
+  "assumptions": ["仅为迁移接口演示，尺寸、重量和BOM均为合成输入，不是供应商报价。"]
+}

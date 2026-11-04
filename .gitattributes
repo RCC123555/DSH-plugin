@@ -1,0 +1,9 @@
+# 统一用 LF 存储，避免 Windows/macOS 换行差异导致整文件 diff
+* text=auto eol=lf
+
+# 二进制资源不做换行转换、不做文本 diff
+*.xlsx binary
+*.xls  binary
+*.png  binary
+*.jpg  binary
+*.pyc  binary

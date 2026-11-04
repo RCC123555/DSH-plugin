@@ -1,0 +1,147 @@
+{
+  "capturedAt": "2026-11-04T08:38:46.148Z",
+  "driver": {
+    "node": "v24.21.0",
+    "platform": "win32-x64",
+    "chrome": "Chrome/156.0.8078.80",
+    "port": 19222
+  },
+  "loggedIn": true,
+  "loginCapturedAt": "2026-11-04T08:38:41.607Z",
+  "loginEvidence": "https://www.1688.com/：cookie __cn_logon__ 标记已登录；存在 __cn_logon_id__；存在 _nk_；1688 域 cookie 34 个（名称：csg,_m_h5_tk,leftMenuLastMode,last_mid,cookie1,x5sec,lid,t,uc4,_user_vitals_session_data_,sgcookie,taklid；不读取值）；页面未显示会员名；页面未显示登录入口；页面显示用户头像",
+  "method": "keyword",
+  "keyword": "M6 螺母",
+  "searchedAt": "2026-11-04T08:38:46.148Z",
+  "candidates": [
+    {
+      "url": "https://detail.1688.com/offer/1025922431445.html",
+      "title": "适用23款哈弗m6plus中控台防晒垫仪表台避光垫仪表盘防晒遮阳光",
+      "priceText": "¥16.8",
+      "price": 16.8,
+      "unitText": null,
+      "moqText": null,
+      "company": "郑州鲸现云电子商务有限公司",
+      "soldText": null,
+      "snippet": "适用23款哈弗m6plus中控台防晒垫仪表台避光垫仪表盘防晒遮阳光 夏季 ¥ 16 .8 运费1.8元 退货包运费 3天达 先采后付 郑州鲸现云电子商务有限公司",
+      "specMatch": {
+        "matched": false,
+        "reason": "螺纹规格不符：要求 M6，候选未标注螺纹"
+      },
+      "capturedAt": "2026-11-04T08:38:46.147Z",
+      "evidence": {
+        "kind": "dom",
+        "pageUrl": "https://s.1688.com/selloffer/offer_search.htm?keywords=M6%20%E8%9E%BA%E6%AF%8D",
+        "snippet": "适用23款哈弗m6plus中控台防晒垫仪表台避光垫仪表盘防晒遮阳光 夏季 ¥ 16 .8 运费1.8元 退货包运费 3天达 先采后付 郑州鲸现云电子商务有限公司",
+        "note": "来自页面可见商品卡片"
+      },
+      "matchHint": "匹配关键词 1/2（部分词元命中 1/2）",
+      "keywordMatched": 1,
+      "keywordPartial": 1
+    },
+    {
+      "url": "https://detail.1688.com/offer/1039850403577.html",
+      "title": "适用26款华为问界M6中控导航屏幕钢化膜TPU内饰贴膜保护膜汽车膜",
+      "priceText": "¥5",
+      "price": 5,
+      "unitText": null,
+      "moqText": null,
+      "company": "国京智能科技(东莞市)有限公司",
+      "soldText": null,
+      "snippet": "适用26款华为问界M6中控导航屏幕钢化膜TPU内饰贴膜保护膜汽车膜 一体成型 ｜ 出风口 ¥ 5 运费5元 200+件 退货包运费 后天达 先采后付 回头率 57% 国京智能科技(东莞市)有限公司",
+      "specMatch": {
+        "matched": false,
+        "reason": "螺纹规格不符：要求 M6，候选未标注螺纹"
+      },
+      "capturedAt": "2026-11-04T08:38:46.147Z",
+      "evidence": {
+        "kind": "dom",
+        "pageUrl": "https://s.1688.com/selloffer/offer_search.htm?keywords=M6%20%E8%9E%BA%E6%AF%8D",
+        "snippet": "适用26款华为问界M6中控导航屏幕钢化膜TPU内饰贴膜保护膜汽车膜 一体成型 ｜ 出风口 ¥ 5 运费5元 200+件 退货包运费 后天达 先采后付 回头率 57% 国京智能科技(东莞市)有限公司",
+        "note": "来自页面可见商品卡片"
+      },
+      "matchHint": "匹配关键词 1/2（部分词元命中 1/2）",
+      "keywordMatched": 1,
+      "keywordPartial": 1
+    },
+    {
+      "url": "https://detail.1688.com/offer/1047164226291.html",
+      "title": "华为赛力斯问界M6全金属高档黑武士时尚运动改装标覆盖替换标",
+      "priceText": "¥4",
+      "price": 4,
+      "unitText": null,
+      "moqText": null,
+      "company": "石狮市邻里邻亲五金厂",
+      "soldText": null,
+      "snippet": "华为赛力斯问界M6全金属高档黑武士时尚运动改装标覆盖替换标 电镀 ｜ 个性车标 ¥ 4 新人价 40+件 包邮 退货包运费 后天达 回头率 63% 石狮市邻里邻亲五金厂",
+      "specMatch": {
+        "matched": false,
+        "reason": "螺纹规格不符：要求 M6，候选未标注螺纹"
+      },
+      "capturedAt": "2026-11-04T08:38:46.147Z",
+      "evidence": {
+        "kind": "dom",
+        "pageUrl": "https://s.1688.com/selloffer/offer_search.htm?keywords=M6%20%E8%9E%BA%E6%AF%8D",
+        "snippet": "华为赛力斯问界M6全金属高档黑武士时尚运动改装标覆盖替换标 电镀 ｜ 个性车标 ¥ 4 新人价 40+件 包邮 退货包运费 后天达 回头率 63% 石狮市邻里邻亲五金厂",
+        "note": "来自页面可见商品卡片"
+      },
+      "matchHint": "匹配关键词 1/2（部分词元命中 1/2）",
+      "keywordMatched": 1,
+      "keywordPartial": 1
+    },
+    {
+      "url": "https://detail.1688.com/offer/1069074797291.html",
+      "title": "适用问界M6M7M8M9车载折叠小桌板餐桌前排电脑桌车用品M5内饰改装",
+      "priceText": "¥40",
+      "price": 40,
+      "unitText": null,
+      "moqText": null,
+      "company": "广州东创汽车科技有限公司",
+      "soldText": null,
+      "snippet": "适用问界M6M7M8M9车载折叠小桌板餐桌前排电脑桌车用品M5内饰改装 皮革 ｜ 折叠 ｜ 平放式 ¥ 40 运费5元 10+件 退货包运费 明天达 回头率42% 回头率 42% 广州东创汽车科技有限公司",
+      "specMatch": {
+        "matched": false,
+        "reason": "螺纹规格不符：要求 M6，候选未标注螺纹"
+      },
+      "capturedAt": "2026-11-04T08:38:46.147Z",
+      "evidence": {
+        "kind": "dom",
+        "pageUrl": "https://s.1688.com/selloffer/offer_search.htm?keywords=M6%20%E8%9E%BA%E6%AF%8D",
+        "snippet": "适用问界M6M7M8M9车载折叠小桌板餐桌前排电脑桌车用品M5内饰改装 皮革 ｜ 折叠 ｜ 平放式 ¥ 40 运费5元 10+件 退货包运费 明天达 回头率42% 回头率 42% 广州东创汽车科技有限公司",
+        "note": "来自页面可见商品卡片"
+      },
+      "matchHint": "匹配关键词 1/2（部分词元命中 1/2）",
+      "keywordMatched": 1,
+      "keywordPartial": 1
+    },
+    {
+      "url": "https://detail.1688.com/offer/1066114817191.html",
+      "title": "适用于问界M6增程版防虫网下网防尘罩改装中网防护网配件一件代发",
+      "priceText": "¥62",
+      "price": 62,
+      "unitText": null,
+      "moqText": null,
+      "company": "温州凡仙电子商务有限公司",
+      "soldText": null,
+      "snippet": "适用于问界M6增程版防虫网下网防尘罩改装中网防护网配件一件代发 ¥ 62 运费5元 30+件 退货包运费 后天达 回头率36% 温州凡仙电子商务有限公司",
+      "specMatch": {
+        "matched": false,
+        "reason": "螺纹规格不符：要求 M6，候选未标注螺纹"
+      },
+      "capturedAt": "2026-11-04T08:38:46.147Z",
+      "evidence": {
+        "kind": "dom",
+        "pageUrl": "https://s.1688.com/selloffer/offer_search.htm?keywords=M6%20%E8%9E%BA%E6%AF%8D",
+        "snippet": "适用于问界M6增程版防虫网下网防尘罩改装中网防护网配件一件代发 ¥ 62 运费5元 30+件 退货包运费 后天达 回头率36% 温州凡仙电子商务有限公司",
+        "note": "来自页面可见商品卡片"
+      },
+      "matchHint": "匹配关键词 1/2（部分词元命中 1/2）",
+      "keywordMatched": 1,
+      "keywordPartial": 1
+    }
+  ],
+  "rawCount": 45,
+  "note": "未从 HTML 解析出候选（页面可能是 JS 壳或被重定向）；DOM 可见商品卡片 45 个；原始候选 45 个，按 limit=5 返回 5 个；搜索页是 JS 渲染，HTML 解析未命中，使用可见 DOM 文本；单位/MOQ 可能缺失，需在详情页确认",
+  "url": "https://s.1688.com/selloffer/offer_search.htm?keywords=M6%20%E8%9E%BA%E6%AF%8D",
+  "screenshot": null,
+  "derivedFieldsNote": "matchHint/specMatch/specMatched 由当前版本 matchHint/matchSpec 重算，原始抓取字段未改动。"
+}
