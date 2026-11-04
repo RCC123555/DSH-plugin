@@ -23,6 +23,40 @@ plugin_manager({action:"install_bundle", target:"D:\\工作\\DSH\\Project\\hardw
 
 `package.json` 的 `dsh.bundle.patch` → `cordis.patch.yml` → 插入 id `hardware-quote`、specifier `hardware-quote-dsh-plugin`。
 
+### 从 GitHub 安装（第二台机器 / 换机）
+
+仓库：<https://github.com/RCC123555/DSH-plugin>（public，插件放在仓库根目录）。DSH 桌面端「设置 → 插件 → 安装」里直接粘贴 spec：
+
+```
+github:RCC123555/DSH-plugin
+```
+
+想锁版本、避免两台机器随上游漂移，就钉 tag 或 commit（推荐）：
+
+```
+github:RCC123555/DSH-plugin#v3.0.1
+```
+
+装好后在 profile 里登记为 `hardware-quote-dsh-plugin`，`cordis.patch.yml` 自动插入 id `hardware-quote`。
+
+- 走代理的机器要给 pnpm/git 同样的网络配置：`https_proxy`/`http_proxy`，并给 git 关掉吊销检查（`http.schannelCheckRevoke=false`），否则会报 `schannel: ... CRYPT_E_NO_REVOCATION_CHECK`。
+- **不随仓库同步**：1688 登录态（`~/.dsh/hardware-quote/chrome-profile`，每台机器各自扫码一次）、`output/` 报价产物、`_scratch/` 试验目录。
+- 本机继续用 `link:D:/工作/DSH/Project/hardware-quote` 开发；改完 `git push`，另一台重装 `github:...#<新 commit>` 即同步。
+
+## 多插件约定（一个仓库、多个分支）
+
+`main` = 本插件（hardware-quote）。以后新增插件**不建子目录、不做 monorepo**，而是各开一个独立分支——每个分支的根目录就是那个插件的包根：
+
+```
+git checkout --orphan plugin-xxx      # 新插件的干净起点
+git add -A && git commit -m "feat: plugin-xxx 初始提交"
+git push -u origin plugin-xxx
+```
+
+- 安装：`github:RCC123555/DSH-plugin#plugin-xxx`
+- tag 加插件前缀，避免跨分支撞名：`plugin-xxx-v1.0.0`
+- 好处：每个分支都满足「仓库根即包根」，`github:` spec 不需要 `#path:/子目录`，桌面端插件管理器能直接装。
+
 ## 怎么用
 
 直接跟 DSH 对话给信息即可（技能会自动被选中，或说“用 hardware-quote 报价”）：
