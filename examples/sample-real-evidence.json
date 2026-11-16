@@ -87,6 +87,22 @@
         "densityKgM3": 15,
         "templateKey": "eps-15-volume",
         "notes": "采用原表425元/m³参考，非实时1688价格"
+      },
+      {
+        "name": "EPS前后整片",
+        "material": "EPS",
+        "spec": "15kg/m3、1.5cm厚",
+        "quantity": 2,
+        "pricing": "volume",
+        "dimensions": {
+          "length": 121,
+          "width": 17,
+          "height": 1.5,
+          "unit": "cm"
+        },
+        "densityKgM3": 15,
+        "templateKey": "eps-15-volume",
+        "notes": "采用原表425元/m³参考，非实时1688价格"
       }
     ]
   },

@@ -84,6 +84,7 @@ test('hwq_quote_batch 已注册且参数契约正确', () => {
     'hwq_1688_search',
     'hwq_1688_offer',
     'hwq_1688_average',
+    'hwq_price_memory',
   ])
   const batch = TOOLS.find((tool) => tool.name === 'hwq_quote_batch')
   assert.deepEqual(batch.parameters.required, ['items'])

@@ -15,14 +15,39 @@ const base = () => ({
   packaging: {protection: [], requireTopBottomEps: false, epsExceptionBasis: '该测试夹具只测重量和价格，显式排除EPS包装；EPS覆盖由专门用例验证。'},
 });
 
+// 3.3.0 起默认 EPS 4 片：上下各 1 片 + 前后两面（长×高）各 1 片。
+const epsFour = () => [
+  {name: '上下整片', material: 'EPS', quantity: 2, pricing: 'volume', dimensions: {length: 126, width: 30, height: 1.5, unit: 'cm'}, templateKey: 'eps-15-volume'},
+  {name: '前后整片', material: 'EPS', quantity: 2, pricing: 'volume', dimensions: {length: 126, width: 8, height: 1.5, unit: 'cm'}, templateKey: 'eps-15-volume'},
+];
+
 /* ------------------------------------------------------------------ *
  * 旧版 test-calculate.mjs 的 50 个用例（逐条翻译，保持断言语义）
  * ------------------------------------------------------------------ */
 
-test('原纸箱示例与mm换算', () => {
-  near(cartonPrice({length: 129, width: 33, height: 11, unit: 'cm'}), 6.49026);
-  near(cartonPrice({length: 1290, width: 330, height: 110, unit: 'mm'}), 6.49026);
+test('原纸箱示例与mm换算：默认对口箱，全搭侧封箱可选', () => {
+  // 对口箱（默认）：(129+2×11+2)×(2×33+2×11+2)/10000 = 153×90/10000 = 1.377㎡
+  near(cartonAreaM2({length: 129, width: 33, height: 11, unit: 'cm'}), 1.377);
+  near(cartonPrice({length: 129, width: 33, height: 11, unit: 'cm'}), 5.7834);
+  // 全搭侧封箱：153×101/10000 = 1.5453㎡
+  near(cartonPrice({length: 129, width: 33, height: 11, unit: 'cm'}, 4.2, '全搭侧封箱'), 6.49026);
+  near(cartonPrice({length: 1290, width: 330, height: 110, unit: 'mm'}, 4.2, '全搭侧封箱'), 6.49026);
   assert.deepEqual(dimensionsCm({length: 1, width: 0.5, height: 0.2, unit: 'm'}), {length: 100, width: 50, height: 20});
+});
+
+test('纸箱箱型：默认对口箱，可选全搭侧封箱，未知箱型明确报错', () => {
+  const d = {length: 129, width: 33, height: 11, unit: 'cm'};
+  const q = calculate(base());
+  assert.equal(q.cartonType, '对口箱'); assert.equal(q.cartonTypeKey, 'butt');
+  near(q.costs.carton, 5.7834); // unitsPerCarton 默认 1
+  const full = base(); full.packaging.cartonType = '全搭侧封箱';
+  const qf = calculate(full);
+  assert.equal(qf.cartonType, '全搭侧封箱'); near(qf.costs.carton, 6.49026);
+  const bad = base(); bad.packaging.cartonType = '天地箱';
+  const qb = calculate(bad);
+  assert.equal(qb.ready, false);
+  assert(qb.blockingIssues.some(i => i.code === 'invalid_carton_type' && i.severity === 'packaging'));
+  assert.throws(() => cartonAreaM2(d, '天地箱'), /未知纸箱箱型/);
 });
 
 test('组装净重保留配件，主料和喷涂拆出配件', () => {
@@ -109,11 +134,14 @@ test('无需喷涂为明确零值', () => {
   near(calculate(x).costs.coating, 0);
 });
 
-test('EPS体积与上下整片用量，固定项12.1元', () => {
+test('EPS体积与上下+前后整片用量，固定项12.1元', () => {
   const x = base(); x.packaging.requireTopBottomEps = true;
-  x.packaging.protection = [{name: '上下整片', material: 'EPS', quantity: 2, pricing: 'volume', dimensions: {length: 126, width: 30, height: 1.5, unit: 'cm'}, templateKey: 'eps-15-volume'}];
+  x.packaging.protection = epsFour();
   const q = calculate(x);
-  assert.equal(q.ready, true); near(q.costs.protection, 4.8195); near(q.costs.fixedPackaging, 12.1);
+  assert.equal(q.ready, true); near(q.costs.protection, 6.1047); near(q.costs.fixedPackaging, 12.1);
+  assert.equal(q.epsCoverage.topBottom.fullPanelsPerCarton, 2);
+  assert.equal(q.epsCoverage.frontBack.fullPanelsPerCarton, 2);
+  assert.equal(q.epsCoverage.fullPanelsPerCarton, 4);
 });
 
 test('7%、8.5%、10%净利率及管理费金额', () => {
@@ -152,15 +180,15 @@ test('pending缺价覆盖三类模板回填，未标pending的准确模板仍兼
     for (const pending of [false, true]) {
       const x = base();
       x.accessories.forEach(a => Object.assign(a, priceInput, pending ? {sourceType: 'pending'} : {}));
-      x.packaging.protection = [{name: '上下整片', material: 'EPS', quantity: 2, pricing: 'volume', dimensions: {length: 126, width: 30, height: 1.5, unit: 'cm'}, templateKey: 'eps-15-volume', ...priceInput, ...(pending ? {sourceType: 'pending'} : {})}];
+      x.packaging.protection = epsFour().map(panel => ({...panel, ...priceInput, ...(pending ? {sourceType: 'pending'} : {})}));
       const q = calculate(x), items = [...q.accessories, ...q.protection];
       assert.equal(q.ready, !pending);
-      assert.equal(q.issues.filter(i => i.code === 'missing_price').length, pending ? 3 : 0);
+      assert.equal(q.issues.filter(i => i.code === 'missing_price').length, pending ? 4 : 0);
       if (pending) {
         for (const item of items) {assert.equal(item.unitPrice, null); assert.equal(item.cost, null); assert.equal(item.sourceType, 'pending');}
         assert.equal(q.costs.accessories, null); assert.equal(q.costs.protection, null); assert.equal(q.totals, null);
       } else {
-        assert.deepEqual(items.map(i => i.unitPrice), [.1, .2, 425]);
+        assert.deepEqual(items.map(i => i.unitPrice), [.1, .2, 425, 425]);
         assert(items.every(i => i.sourceType === 'template'));
         assert(q.totals);
       }
@@ -171,7 +199,7 @@ test('pending缺价覆盖三类模板回填，未标pending的准确模板仍兼
 test('三类模板尊重用户明确零价，不回填默认价格', () => {
   const x = base();
   x.accessories.forEach(a => Object.assign(a, {unitPrice: 0, sourceType: 'user'}));
-  x.packaging.protection = [{name: '上下整片', material: 'EPS', quantity: 2, pricing: 'volume', dimensions: {length: 126, width: 30, height: 1.5, unit: 'cm'}, templateKey: 'eps-15-volume', unitPrice: 0, sourceType: 'user'}];
+  x.packaging.protection = epsFour().map(panel => ({...panel, unitPrice: 0, sourceType: 'user'}));
   const q = calculate(x);
   assert.equal(q.ready, true);
   for (const item of [...q.accessories, ...q.protection]) {assert.equal(item.unitPrice, 0); assert.equal(item.cost, 0); assert.equal(item.sourceType, 'user');}
@@ -324,11 +352,18 @@ test('用量变化同步改变主料、配件及喷涂', () => {
   near(after.costs.accessories, before.costs.accessories + .4);
 });
 
-test('124×63×22外箱的EPS上下各121×60整片', () => {
+test('124×63×22外箱的EPS：上下各121×60 + 前后各121×19，共4片', () => {
   const x = base(); x.product.cartonDimensions = {length: 124, width: 63, height: 22, unit: 'cm'}; x.packaging.requireTopBottomEps = true;
-  x.packaging.protection = [{name: '上下整片', material: 'EPS', quantity: 2, pricing: 'volume', dimensions: {length: 121, width: 60, height: 1.5, unit: 'cm'}, templateKey: 'eps-15-volume'}];
+  x.packaging.protection = [
+    {name: '上下整片', material: 'EPS', quantity: 2, pricing: 'volume', dimensions: {length: 121, width: 60, height: 1.5, unit: 'cm'}, templateKey: 'eps-15-volume'},
+    {name: '前后整片', material: 'EPS', quantity: 2, pricing: 'volume', dimensions: {length: 121, width: 19, height: 1.5, unit: 'cm'}, templateKey: 'eps-15-volume'},
+  ];
   const q = calculate(x);
-  assert.equal(q.ready, true); near(q.costs.protection, 9.2565); near(q.epsCoverage.fullPanelsPerCarton, 2);
+  assert.equal(q.ready, true);
+  near(q.costs.protection, 12.187725);
+  assert.equal(q.epsCoverage.topBottom.fullPanelsPerCarton, 2);
+  assert.equal(q.epsCoverage.frontBack.fullPanelsPerCarton, 2);
+  assert.equal(q.epsCoverage.fullPanelsPerCarton, 4);
 });
 
 test('四条10×60窄条不能替代两张上下整片', () => {
@@ -344,10 +379,12 @@ test('完整EPS只有一张也拦截', () => {
   assert.equal(calculate(x).ready, false);
 });
 
-test('多件一箱EPS按每箱至少两张核对', () => {
+test('多件一箱EPS按每箱至少四张（上下2+前后2）核对', () => {
   const x = base(); x.order = {unitsPerCarton: 2}; x.packaging.requireTopBottomEps = true;
-  x.packaging.protection = [{name: '整片', material: 'EPS', quantity: 1, pricing: 'volume', dimensions: {length: 30, width: 126, height: 1.5, unit: 'cm'}, templateKey: 'eps-15-volume'}];
-  assert.equal(calculate(x).ready, true);
+  x.packaging.protection = epsFour().map(panel => ({...panel, quantity: 1}));
+  const q = calculate(x);
+  assert.equal(q.ready, true);
+  assert.equal(q.epsCoverage.fullPanelsPerCarton, 4);
 });
 
 test('缺少EPS默认拦截，明确替代方案必须有依据', () => {

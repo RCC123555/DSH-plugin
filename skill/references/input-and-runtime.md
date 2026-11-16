@@ -21,11 +21,16 @@
     {"name":"螺母","spec":"M6","quantity":8,"templateKey":"m6-nut","weightKgPerUnit":0.002,"weightSourceType":"estimate","weightBasis":"接口示例暂按2g/个；实际须按匹配规格核实"}
   ],
   "packaging": {
-    "requireTopBottomEps": true, "topBottomClearanceCm": 3,
-    "protection": [{"name":"EPS上下垫片","material":"EPS","spec":"15kg/m³，1.5cm厚","quantity":2,"pricing":"volume",
-      "dimensions":{"length":126,"width":62,"height":1.5,"unit":"cm"},"densityKgM3":15,
-      "templateKey":"eps-15-volume","notes":"演示原表参考价；实际优先联网核价"}],
-    "notes":"上下各一整片；外箱最大面129×65cm，长宽各留3cm冗余"
+    "cartonType": "对口箱", "requireTopBottomEps": true, "topBottomClearanceCm": 3,
+    "protection": [
+      {"name":"EPS上下整片","material":"EPS","spec":"15kg/m³，1.5cm厚","quantity":2,"pricing":"volume",
+       "dimensions":{"length":126,"width":62,"height":1.5,"unit":"cm"},"densityKgM3":15,
+       "templateKey":"eps-15-volume","notes":"上下各1片；演示原表参考价，实际优先联网核价"},
+      {"name":"EPS前后整片","material":"EPS","spec":"15kg/m³，1.5cm厚","quantity":2,"pricing":"volume",
+       "dimensions":{"length":126,"width":15,"height":1.5,"unit":"cm"},"densityKgM3":15,
+       "templateKey":"eps-15-volume","notes":"前后两面（长×高）各1片；高度=外箱高18−3cm"}
+    ],
+    "notes":"默认4整片：上下各1片（长宽各−3cm）+前后两面各1片（长×高各−3cm）；外箱129×65×18cm"
   },
   "assumptions": ["图片未确定的参数在此说明"]
 }
@@ -48,8 +53,9 @@
 | `order.quantity/unitsPerCarton` | 采购产品数/每箱件数，默认 500/1，正整数。 |
 | `processing.hasBoardProcessing` | 兼容旧输入的可选字段，不再决定人工费；开料、弯形、焊接、打磨合计成本统一按本体金属 kg×3 元/kg。 |
 | `processing.needsCoating` | 本体是否喷涂，显式布尔。 |
+| `packaging.cartonType` | `对口箱`（默认）或 `全搭侧封箱`；也接受 `butt`/`full`。对应纸箱展开面积公式见价格依据；未知值报 `invalid_carton_type`。 |
 | `packaging.protection[]` | `quantity` 为每件用量；`pricing=piece/volume/area/length` 分别按个/片/套、m³、m²、m；后三项提供三维 `dimensions`，未计价的维度填实际厚度/宽度，不填 0。可填 `densityKgM3`、`weightKgPerUnit`。 |
-| `packaging.requireTopBottomEps/topBottomClearanceCm` | 默认 true/3cm，覆盖要求见报价规则。 |
+| `packaging.requireTopBottomEps/topBottomClearanceCm` | 默认 true/3cm；默认要求 4 整片（上下各 1 + 前后两面各 1），覆盖要求见报价规则。 |
 | `packaging.epsExceptionBasis` | 用户明确免用或替代 EPS 时，`requireTopBottomEps=false` 并填依据。 |
 | `product.date/imagePath` | 日期 YYYY-MM-DD，省略时按 Asia/Shanghai 当天；历史报价填固定日期。`imagePath` 为嵌入 BOM 的第一张产品图，绝对路径或相对输入 JSON 目录；也可用 `hwq_quote` 的 `imagePath` 传入。 |
 | `rates` | 可覆盖 `metal/wood/coating/carton/tax/netMargin/managementToProfit`，默认 5/5/2.5/4.2/0.1/0.085/0.9。 |
@@ -128,19 +134,30 @@
 
 ### hwq_1688_login
 
-`action: "status" | "open" | "show" | "hide" | "flush"`：查登录态、打开登录页、把窗口调到前台、收回后台、把登录态强制落盘到持久 Chrome profile（`flush` 会优雅关闭并按同一 profile 重启插件 Chrome，登录态保留，返回 `flushed.ok` 与原因；不读取也不导出 Cookie 值）。扫码/验证码由用户完成，工具不代填凭据。插件 Chrome 默认后台最小化、查价不抢前台；只有登录墙/验证码且检测到用户已离开 ≥ `HWQ_SURFACE_IDLE_MS`（默认 120000ms）时才自动置前，窗口模式用 `HWQ_WINDOW=auto|background|visible` 指定（默认 `auto`）。`open`/`show` 总是置前，`hide` 收回后台。
+`action: "status" | "open" | "show" | "hide" | "flush"`：查登录态、打开登录页、把窗口调到前台、收回后台、把登录态强制落盘到持久 Chrome profile（`flush` 会优雅关闭并按同一 profile 重启插件 Chrome，登录态保留，返回 `flushed.ok` 与原因；不读取也不导出 Cookie 值）。扫码/验证码由用户完成，工具不代填凭据。插件 Chrome 正常查价全程后台、不抢前台；检测到登录墙/验证码时 `auto` 模式**立即**置前、截图、返回 `userActionRequired` 并写 `challenge.json`，处理完重试成功后自动收回后台。`HWQ_WINDOW=background` 绝不弹窗、`visible` 始终可见（旧 `HWQ_SURFACE_IDLE_MS` 仅诊断）。`open`/`show` 总是置前，`hide` 收回后台。
 
 ### hwq_1688_search
 
-关键词搜索（`keywords`）或以图搜款（`imagePath`），`limit` 默认 5，二者只能二选一。返回 `method`（`keyword`/`image`）、实际 `keyword`、`searchedAt`、候选 `candidates[{url,title,priceText,unitText,moqText,company,soldText,matchHint}]`，以及 `rawCount`、`note`、`blocked`、`screenshot`。搜索候选价不是详情成交价，须再用 `hwq_1688_offer` 打开。
+关键词搜索（`keywords`）或以图搜款（`imagePath`），`limit` 默认 5，二者只能二选一。默认先查价格记忆：命中且未超过 180 天返回 `fromMemory:true`、`cachedAt`、`memoryAgeDays`、`memoryKey`，并按当前 `limit`/`sameSpecOnly` 重新过滤候选；`useMemory:false` 强制实时查询，`refresh:true` 重查并覆盖，`maxAgeDays` 临时改有效期。返回 `method`（`keyword`/`image`）、实际 `keyword`、`searchedAt`、候选 `candidates[{url,title,priceText,unitText,moqText,company,soldText,matchHint}]`，以及 `rawCount`、`note`、`blocked`、`userActionRequired`、`screenshot`。搜索候选价不是详情成交价，须再用 `hwq_1688_offer` 打开。
 
 ### hwq_1688_offer
 
-传入详情 `url`，返回标题、供应商、单位、SKU 列表 `offers[{skuId,props,priceText,price,unit,moqText}]`、`capturedAt` 与 `domNotes`；据此核对所选规格与普通批发价，组装 `priceEvidence`。
+传入详情 `url`，返回标题、供应商、单位、SKU 列表 `offers[{skuId,props,priceText,price,unit,moqText}]`、`capturedAt` 与 `domNotes`；据此核对所选规格与普通批发价，组装 `priceEvidence`。默认先查价格记忆，命中返回 `fromMemory:true`、`cachedAt`、`memoryAgeDays` 并按当前 `skuHint` 重新选 SKU；`useMemory:false`/`refresh:true`/`maxAgeDays` 语义同搜索。
 
 ### hwq_1688_average
 
 传入同规格 `samples`（每条完整 `priceEvidence`，且须带相同 `comparisonKey`、`priceBasis`）、`comparisonKey`、`targetUnit`、`priceBasis` 与 `demand:{quantity,unit}`（quantity=每件用量×订单量），做单位归一、商品+SKU 去重、算术平均，返回 `samples/excluded/sampleCount/mean/min/max` 与排除原因。样本不足 2 条标为单样本；采购量使样本 MOQ/档位失效时须重新查价。
+
+### hwq_price_memory
+
+管理跨机共享的价格记忆（GitHub 同仓库 `price-memory` 分支，或 `HWQ_MEMORY_DIR` 指定的目录）：
+
+- `action:"status"`：后端（`git`/`dir`/`local-fallback`）、目录、TTL、条目数、`pendingPush`、`degraded`、最近 pull/push 时间与错误。
+- `list`：按 `kind:"search"|"offer"`、`limit` 列条目（key、capturedAt、ageDays、供应商/标题摘要）。
+- `forget`：按 `kind` + `key`/`url`/`keywords`/`imagePath` 删除单条。
+- `prune`：删除超过 `maxAgeDays` 的条目（默认 TTL 180）。
+- `clear`：清空，必须显式 `confirm:true`。
+- `sync`：立即 pull + push（用于刚换机或确认推送成功）。
 
 ## 输出与复核
 

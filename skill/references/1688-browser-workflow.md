@@ -2,6 +2,8 @@
 
 报价查价前必须读取本文件。插件自带持久 Chrome 与零依赖 CDP 客户端，查价直接用 `hwq_1688_*` 工具，不依赖宿主浏览器工具、ego 工具或用户手动开浏览器。工具只执行真实页面操作；计划、参数校验、搜索结果页都不能当作已访问详情的证明。
 
+**查价顺序（3.3.0）**：`hwq_1688_search`/`hwq_1688_offer` 会先 pull GitHub `price-memory` 分支的价格记忆 → 命中且抓取未超过 180 天直接用（返回 `fromMemory:true`、`cachedAt`、`memoryAgeDays`）→ 超过 180 天必须重新查询并覆盖记忆 → 记忆中没有才真正打开 1688 搜索/详情。`useMemory:false` 用于明确要求实时价的场景；`refresh:true` 强制重查。命中记忆时 `queriedAt` 仍是原始抓取日期，不得写成今天，也不得把记忆价说成刚查的实时价。
+
 ## 登录与浏览器生命周期
 
 1. `hwq_1688_login action:"status"`：返回是否已登录及证据。已登录直接查价，不重复要求登录。
@@ -9,8 +11,8 @@
 3. `hwq_1688_login action:"flush"` 把登录态强制写入持久 profile（会优雅关闭并按同一 profile 重启插件 Chrome，登录态保留），重启后长期有效。
 4. 插件使用独立 profile，不关闭用户其它浏览器；不要重启、另开调试端口或用自写脚本绕开工具。
 5. **规格匹配是硬门槛**：`hwq_1688_search`/`hwq_1688_offer` 只有在螺纹规格（M6）、长度（×15）、头型三者与目标一致时才标 `specMatched:true`；“套装/配螺母/大全”等组合件价格不得当单颗价使用。搜到 3–5 个候选也可能一个都不匹配——这时如实报 pending，不要拿不符规格的价格凑数。
-6. 出现滑块/图形验证码时，工具返回 `blocked:"captcha"` 及截图路径，提示用户在该窗口手动完成；不自动处理、不绕过。验证码以 iframe（`x5secdata`/`punish`/`captcha`）形式挂在搜索页时，即使正文为空也必须判为拦截，不能写成「没搜到商品」。
-7. **默认后台，不抢前台**：插件 Chrome 启动即屏外最小化，新标签用 `Target.createTarget{background:true}` 创建，查价过程不会把窗口拉到前台。只有登录墙/验证码且 Windows 检测到用户已 idle ≥ `HWQ_SURFACE_IDLE_MS`（默认 120000ms）时才自动置前；用户在用则保持后台，返回 `windowShown:false` 与 `windowNote`，此时用 `hwq_1688_login action:"show"` 手动调出、`action:"hide"` 收回。窗口模式由 `HWQ_WINDOW=auto|background|visible` 控制（默认 auto）。
+6. 出现滑块/图形验证码或登录墙时，工具返回 `blocked:"captcha"|"login"`、截图路径与 `userActionRequired{kind,message,howToResume}`，`auto` 模式下窗口已自动置前；把「需要你处理：…」转告用户，请其在该窗口手动完成，不自动处理、不绕过。验证码以 iframe（`x5secdata`/`punish`/`captcha`）形式挂在搜索页时，即使正文为空也必须判为拦截，不能写成「没搜到商品」。
+7. **默认后台，只有验证才弹窗**：插件 Chrome 启动即屏外最小化，新标签用 `Target.createTarget{background:true}` 创建，正常查价不会把窗口拉到前台。检测到登录墙/验证码时立即自动置前、截图并写 `challenge.json`，返回 `userActionRequired`；用户处理完重新执行同一查询，成功后工具自动收回后台。`HWQ_WINDOW=background` 绝不弹窗（只返回提示，需用户手动 `action:"show"`）、`visible` 始终可见；旧 `HWQ_SURFACE_IDLE_MS` 仅作诊断。
 
 ## 故障分层
 

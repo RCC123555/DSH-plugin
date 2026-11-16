@@ -826,7 +826,7 @@ def write_bottom(ws, plan):
         style_range(ws, 'H%d:I%d' % (row, row), font=FONT,
                     alignment=Alignment(horizontal='center', vertical='center'))
 
-    band(ws, 28, '保护材料用量（每件产品）：顶部/底部各一整片EPS，局部垫块额外列明')
+    band(ws, 28, '保护材料用量（每件产品）：上下各一整片EPS + 前后两面各一整片EPS，局部垫块额外列明')
     header(ws, 29, ['名称', '材质 / 单价单位', '数量', '长 cm', '宽 cm', '厚 cm', '单价', '费用 元', '来源记录'])
     protection_rows = []
     cursor = 30
@@ -870,28 +870,51 @@ def write_bottom(ws, plan):
 
     eps = calc.get('epsCoverage') or {}
     if eps.get('required'):
-        clearance = eps.get('clearanceCm')
+        top = eps.get('topBottom') or {}
+        front = eps.get('frontBack') or {}
         eligible = [protection_rows[i] for i, item in enumerate(calc.get('protection') or [])
                     if item.get('material') == 'EPS' and item.get('dimensions')]
-        terms = ['IF(AND(MAX(D{r}:E{r})>=MAX($B$14:$B$16)-{c},MIN(D{r}:E{r})>=SUM($B$14:$B$16)-MAX($B$14:$B$16)-MIN($B$14:$B$16)-{c}),C{r}*$B$13,0)'
-                 .format(r=row, c=clearance) for row in eligible]
+
+        def pn(value):
+            return ('%.10g' % value) if isinstance(value, (int, float)) else '0'
+
+        terms_top = ['IF(AND(MAX(D{r}:E{r})>={l},MIN(D{r}:E{r})>={w}),C{r}*$B$13,0)'
+                     .format(r=row, l=pn(top.get('minimumLengthCm')), w=pn(top.get('minimumWidthCm')))
+                     for row in eligible]
+        terms_front = ['IF(AND(MAX(D{r}:E{r})>={l},MIN(D{r}:E{r})<{w},MIN(D{r}:E{r})>={h}),C{r}*$B$13,0)'
+                       .format(r=row, l=pn(front.get('minimumLengthCm')), w=pn(top.get('minimumWidthCm')),
+                               h=pn(front.get('minimumHeightCm')))
+                       for row in eligible]
         merge(ws, 'F16:G16')
-        text(ws, 'F16', '每箱完整EPS片数')
+        text(ws, 'F16', '每箱完整EPS片数（上下）')
         style_range(ws, 'F16:G16', font=FONT, alignment=Alignment(vertical='center', wrap_text=True))
         merge(ws, 'H16:I16')
-        formula(ws, 'H16', '=' + ('+'.join(terms) if terms else '0'))
+        formula(ws, 'H16', '=' + ('+'.join(terms_top) if terms_top else '0'))
         style_range(ws, 'H16:I16', font=FONT, alignment=Alignment(horizontal='center', vertical='center'))
-        merge(ws, 'F17:I18')
-        formula(ws, 'F17', '=IF(H16>=2,"上下整片EPS覆盖通过（至少2片/箱）","EPS整片覆盖不足，阻止确定报价")')
-        style_range(ws, 'F17:I18', font=FONT, alignment=Alignment(vertical='center', wrap_text=True))
+        merge(ws, 'F17:G17')
+        text(ws, 'F17', '每箱完整EPS片数（前后）')
+        style_range(ws, 'F17:G17', font=FONT, alignment=Alignment(vertical='center', wrap_text=True))
+        merge(ws, 'H17:I17')
+        formula(ws, 'H17', '=' + ('+'.join(terms_front) if terms_front else '0'))
+        style_range(ws, 'H17:I17', font=FONT, alignment=Alignment(horizontal='center', vertical='center'))
+        merge(ws, 'F18:I19')
+        formula(ws, 'F18', '=IF(AND(H16>=2,H17>=2),"上下+前后整片EPS覆盖通过（至少4片/箱）","EPS整片覆盖不足（需上下各1片、前后各1片，共4片），阻止确定报价")')
+        style_range(ws, 'F18:I19', font=FONT, alignment=Alignment(vertical='center', wrap_text=True))
 
     carton_section = cursor + 1
-    band(ws, carton_section, '纸箱：全搭侧封箱')
+    carton_type_key = calc.get('cartonTypeKey') or ((inp.get('packaging') or {}).get('cartonType') or 'butt')
+    carton_type_key = 'full' if str(carton_type_key) in ('full', '全搭侧封箱') else 'butt'
+    carton_label = '全搭侧封箱' if carton_type_key == 'full' else '对口箱'
+    band(ws, carton_section, '纸箱：%s' % carton_label)
     area_row = carton_section + 1
     carton_cost_row = carton_section + 2
     merge(ws, 'A%d:F%d' % (area_row, area_row))
-    text(ws, 'A%d' % area_row, '展开面积 m²＝(长＋2×高＋2)×(2×宽＋3×高＋2)÷10000')
-    formula(ws, 'H%d' % area_row, '=(B14+2*B16+2)*(2*B15+3*B16+2)/10000')
+    if carton_type_key == 'butt':
+        text(ws, 'A%d' % area_row, '展开面积 m²＝(长＋2×高＋2)×(2×宽＋2×高＋2)÷10000（对口箱）')
+        formula(ws, 'H%d' % area_row, '=(B14+2*B16+2)*(2*B15+2*B16+2)/10000')
+    else:
+        text(ws, 'A%d' % area_row, '展开面积 m²＝(长＋2×高＋2)×(2×宽＋3×高＋2)÷10000（全搭侧封箱）')
+        formula(ws, 'H%d' % area_row, '=(B14+2*B16+2)*(2*B15+3*B16+2)/10000')
     style_range(ws, 'A%d:F%d' % (area_row, area_row), font=FONT, alignment=Alignment(vertical='center'))
     style_range(ws, 'H%d' % area_row, font=FONT, alignment=Alignment(horizontal='center', vertical='center'))
     numfmt(ws, 'H%d' % area_row, '0.0000')
@@ -1166,10 +1189,12 @@ def write_bottom(ws, plan):
         weight_estimates.get('packagingBasis'),
         (inp.get('packaging') or {}).get('notes'), (inp.get('processing') or {}).get('notes')) if x]
     if eps.get('required'):
-        explanations.append('上下EPS整片覆盖核对：每片至少%s×%scm，每箱符合完整覆盖的片材%s片；'
-                            '局部垫条或小垫块不计入上下整片数量。' % (
-                                eps.get('minimumLengthCm'), eps.get('minimumWidthCm'),
-                                eps.get('fullPanelsPerCarton')))
+        top = eps.get('topBottom') or {}
+        front = eps.get('frontBack') or {}
+        explanations.append('EPS整片覆盖核对：上下片每片至少%s×%scm（每箱2片），前后片每片至少%s×%scm（每箱2片），共4片；'
+                            '局部垫条或小垫块不计入整片数量。' % (
+                                top.get('minimumLengthCm'), top.get('minimumWidthCm'),
+                                front.get('minimumLengthCm'), front.get('minimumHeightCm')))
     explanations += ['%s：%s' % ('待补' if x.get('severity') == 'blocking' else '提醒', x.get('message'))
                      for x in issues]
     for message in explanations:
@@ -1203,7 +1228,8 @@ def write_bottom(ws, plan):
         ('主料金属重量', weights.get('metal'), 'kg', 'B19', '本体金属', '0.000'),
         ('主料木材重量', weights.get('wood'), 'kg', 'B18', '本体木材', '0.000'),
         ('毛重', weights.get('gross'), 'kg', 'B20', '整件+包材+附带件', '0.000'),
-        ('每箱完整EPS片数', eps.get('fullPanelsPerCarton'), '片/箱', 'H16', '上下整片覆盖计数', '0'),
+        ('每箱完整EPS片数（上下）', (eps.get('topBottom') or {}).get('fullPanelsPerCarton'), '片/箱', 'H16', '上下各1片', '0'),
+        ('每箱完整EPS片数（前后）', (eps.get('frontBack') or {}).get('fullPanelsPerCarton'), '片/箱', 'H17', '前后各1片', '0'),
     ]
     for label, value, unit, ref, description, fmt in recalc_rows:
         put(ws, cursor, 1, label)
@@ -1387,9 +1413,10 @@ def write_front(ws, plan, sources, protection_total, area_row):
     text(ws, 'F%d' % carton, '箱')
     formula(ws, 'G%d' % carton, "='%s'!H%d*'%s'!B8" % (BOTTOM, area_row, BOTTOM))
     formula(ws, 'H%d' % carton, '=D%d*G%d' % (carton, carton))
-    text(ws, 'I%d' % carton, '全搭侧封箱')
+    carton_label = '全搭侧封箱' if (calc.get('cartonTypeKey') == 'full') else '对口箱'
+    text(ws, 'I%d' % carton, carton_label)
     add_link(ws, 'I%d' % carton, location="'%s'!A%d" % (BOTTOM, plan['layout'].get('cartonSection', 0) or 0),
-             display='全搭侧封箱')
+             display=carton_label)
 
     cost = layout['cost']
     management = layout['management']
@@ -1413,7 +1440,7 @@ def write_front(ws, plan, sources, protection_total, area_row):
         formula(ws, 'G%d' % management, '=NA()')
     formula(ws, 'G%d' % tax, "=G%d*'%s'!B9" % (before_tax, BOTTOM))
     if (calc.get('epsCoverage') or {}).get('required'):
-        formula(ws, 'G%d' % after_tax, "=IF('%s'!H16>=2,SUM(G%d,G%d),NA())" % (BOTTOM, before_tax, tax))
+        formula(ws, 'G%d' % after_tax, "=IF(AND('%s'!H16>=2,'%s'!H17>=2),SUM(G%d,G%d),NA())" % (BOTTOM, BOTTOM, before_tax, tax))
     else:
         formula(ws, 'G%d' % after_tax, '=SUM(G%d,G%d)' % (before_tax, tax))
     formula(ws, 'L%d' % after_tax, '=G%d/G%d' % (profit, after_tax))
@@ -1574,8 +1601,9 @@ def evaluate_and_verify(path, plan):
     expect(bottom['H10'].value == "='%s'!G%d" % (FRONT, layout['afterTax']), '报价底稿 H10 未引用含税报价')
     expect(bottom['H11'].value == "='%s'!L%d" % (FRONT, layout['afterTax']), '报价底稿 H11 未引用净利率')
     if (plan['calc'].get('epsCoverage') or {}).get('required'):
-        expect(isinstance(bottom['H16'].value, str) and bottom['H16'].value.startswith('='), '报价底稿 H16 缺少EPS片数公式')
-        expect('F17:I18' in {str(x) for x in bottom.merged_cells.ranges}, '报价底稿 缺少EPS覆盖结论合并区')
+        expect(isinstance(bottom['H16'].value, str) and bottom['H16'].value.startswith('='), '报价底稿 H16 缺少上下EPS片数公式')
+        expect(isinstance(bottom['H17'].value, str) and bottom['H17'].value.startswith('='), '报价底稿 H17 缺少前后EPS片数公式')
+        expect('F18:I19' in {str(x) for x in bottom.merged_cells.ranges}, '报价底稿 缺少EPS覆盖结论合并区')
     recalc_start = (plan.get('bottomLayout') or {}).get('recalcStart')
     expect(bool(recalc_start) and isinstance(bottom['A%d' % recalc_start].value, str)
            and '脚本复算' in bottom['A%d' % recalc_start].value, '报价底稿 缺少脚本复算区块')

@@ -1,3 +1,23 @@
+# 3.3.0
+
+## 物料价格记忆（跨机共享）
+
+- 新增 `lib/memory.mjs` 与 `hwq_price_memory`：搜索候选、详情 SKU 价写入 GitHub 同仓库独立分支 `price-memory`（`search/<sha256>.json`、`offer/<offerId>.json`，README 说明 schema），本机保留克隆 `~/.dsh/hardware-quote/price-memory-git` 与镜像目录；只存成功非空结果，被拦截/异常/空结果不缓存。
+- 查价顺序固定：pull 记忆 → 抓取超过 `maxAgeDays`（默认 180 天）必须重查并更新 → 缺失才 1688 搜索。`hwq_1688_search`/`hwq_1688_offer` 新增 `useMemory`/`refresh`/`maxAgeDays`，命中返回 `fromMemory`/`cachedAt`/`memoryAgeDays`/`memoryKey`，并按当前 `limit`/`sameSpecOnly`/`skuHint` 重新过滤与选 SKU；`queriedAt` 保留原始日期。
+- 多机合并按 `capturedAt`/`storedAt` 新者胜；pull 节流 60s、push 节流 15s；离线保留待推；clone/push 失败降级 `local-fallback` 并在 `status` 标记 `degraded`；`HWQ_MEMORY=0`/`HWQ_MEMORY_GIT=0`/`HWQ_MEMORY_DIR` 可切换或关闭后端。
+- 新增 `test/memory.test.mjs`（13 例，临时 bare git 仓库离线跑）：键规范化、图片 hash、TTL、`useMemory:false`、过期、只缓存成功、损坏文件、双机共享、并发、冲突取新、离线降级、`status/list/prune/forget/clear/sync`。
+
+## 后台查价 + 验证弹窗
+
+- 正常查价全程后台（屏外最小化、`Target.createTarget{background:true}`、不 `bringToFront`）。检测到登录墙/验证码时 `auto` 模式**立即**置前（不再等用户空闲），截图并返回 `userActionRequired{kind,message,howToResume}`，原子写 `~/.dsh/hardware-quote/challenge.json`；用户处理完重试成功后自动 `minimizeWindow` 收回并清 challenge。
+- `HWQ_WINDOW=background` 绝不弹窗、`visible` 始终可见；旧 `HWQ_SURFACE_IDLE_MS` 仅保留为诊断，`shouldSurfaceWindow` 旧语义保留给 3.1 测试，新增 `shouldSurfaceForChallenge(mode)`、`readChallenge`/`clearChallenge`、`challengeUserAction`。
+
+## 包装默认值调整
+
+- `packaging.cartonType` 新增：默认「对口箱」，可选「全搭侧封箱」；面积分别 `(长+2×高+2)×(2×宽+2×高+2)/10000`、`(长+2×高+2)×(2×宽+3×高+2)/10000`，单价均 4.2 元/m²；未知箱型报 `invalid_carton_type`。
+- 默认 EPS 由「上下各 1 片共 2 片」改为 **4 整片**：上下各 1 片 `(长−3)×(宽−3)` + 前后两面各 1 片 `(长−3)×(高−3)`；`epsCoverage` 分 `topBottom`/`frontBack` 统计，任一类不足 2 片报 `insufficient_eps_coverage` 并阻止含税报价；BOM 底稿改为 H16/H17 两行计数与 `F18:I19` 结论，含税公式改为 `AND(H16>=2,H17>=2)`。
+- 测试更新：pricing 60 例、quote/batch/single-accessory 夹具改为 4 片 EPS；全量 147 例（141 pass / 0 fail / 6 skip）。
+
 # 3.2.0
 
 ## 多产品合并交付（一个工作簿、每款一张分表）

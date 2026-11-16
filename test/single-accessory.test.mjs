@@ -26,8 +26,8 @@ test('只有 1 条配件的产品也能导出（模板保留行整行留空，�
     assert.equal(result.checks.rowMap.accessoryStart, 14);
     assert.equal(result.checks.rowMap.accessorySubtotal, 16);
     assert.deepEqual(result.checks.formulaErrors, []);
-    assert.equal(result.checks.totals.cost, 215.03187499999999);
-    assert.equal(result.checks.totals.taxed, 287.6330789809692);
+    assert.equal(result.checks.totals.cost, 216.26015);
+    assert.equal(result.checks.totals.taxed, 289.2760564236639);
   } finally {
     await fs.rm(root, {recursive: true, force: true});
   }

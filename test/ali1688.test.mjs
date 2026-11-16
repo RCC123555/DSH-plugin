@@ -11,6 +11,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 import * as ali from '../lib/ali1688.mjs';
@@ -557,4 +558,43 @@ test.after(async () => {
   if (!LIVE) return;
   const {disconnectAll} = await import('../lib/cdp.mjs');
   disconnectAll();
+});
+
+// ---------------------------------------------------------------------------
+// 离线层：窗口策略与验证弹窗（3.3.0）
+// ---------------------------------------------------------------------------
+
+test('窗口策略：auto/visible 遇验证置前，background 绝不弹窗', () => {
+  assert.equal(ali.shouldSurfaceForChallenge('auto'), true);
+  assert.equal(ali.shouldSurfaceForChallenge('visible'), true);
+  assert.equal(ali.shouldSurfaceForChallenge('background'), false);
+  assert.equal(ali.shouldSurfaceForChallenge(undefined), true);
+});
+
+test('userActionRequired 说明问题与恢复方式', () => {
+  const captcha = ali.challengeUserAction('captcha', {url: 'https://s.1688.com/x', screenshot: 'C:/tmp/a.png'});
+  assert.equal(captcha.kind, 'captcha');
+  assert.match(captcha.message, /验证码|滑块|验证/);
+  assert.match(captcha.howToResume, /重新|重试|查询/);
+  assert.equal(captcha.pageUrl, 'https://s.1688.com/x');
+  assert.equal(captcha.screenshot, 'C:/tmp/a.png');
+  const login = ali.challengeUserAction('login', {});
+  assert.equal(login.kind, 'login');
+  assert.match(login.message, /登录/);
+  assert.match(login.howToResume, /登录|扫码/);
+});
+
+test('challenge.json 读取与清理（离线）', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hwq-challenge-'));
+  try {
+    assert.equal(await ali.readChallenge({stateDir: dir}), null);
+    fs.writeFileSync(path.join(dir, 'challenge.json'), JSON.stringify({kind: 'captcha', detectedAt: '2026-11-16T10:00:00.000Z'}));
+    const got = await ali.readChallenge({stateDir: dir});
+    assert.equal(got.kind, 'captcha');
+    await ali.clearChallenge({stateDir: dir});
+    assert.equal(await ali.readChallenge({stateDir: dir}), null);
+    await ali.clearChallenge({stateDir: dir}); // 幂等
+  } finally {
+    fs.rmSync(dir, {recursive: true, force: true});
+  }
 });

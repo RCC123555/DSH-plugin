@@ -6,12 +6,27 @@
     "material": "metal",
     "netWeightKg": 10,
     "netWeightBasis": "assembled",
-    "dimensions": { "length": 120, "width": 60, "height": 75, "unit": "cm" },
-    "cartonDimensions": { "length": 124, "width": 63, "height": 22, "unit": "cm" },
+    "dimensions": {
+      "length": 120,
+      "width": 60,
+      "height": 75,
+      "unit": "cm"
+    },
+    "cartonDimensions": {
+      "length": 124,
+      "width": 63,
+      "height": 22,
+      "unit": "cm"
+    },
     "images": []
   },
-  "order": { "quantity": 500, "unitsPerCarton": 1 },
-  "processing": { "needsCoating": true },
+  "order": {
+    "quantity": 500,
+    "unitsPerCarton": 1
+  },
+  "processing": {
+    "needsCoating": true
+  },
   "woodPieces": [],
   "accessories": [
     {
@@ -45,12 +60,35 @@
         "spec": "15kg/m3、1.5cm厚",
         "quantity": 2,
         "pricing": "volume",
-        "dimensions": { "length": 121, "width": 60, "height": 1.5, "unit": "cm" },
+        "dimensions": {
+          "length": 121,
+          "width": 60,
+          "height": 1.5,
+          "unit": "cm"
+        },
+        "densityKgM3": 15,
+        "templateKey": "eps-15-volume",
+        "notes": "采用原表425元/m³参考，非实时1688价格"
+      },
+      {
+        "name": "EPS前后整片",
+        "material": "EPS",
+        "spec": "15kg/m3、1.5cm厚",
+        "quantity": 2,
+        "pricing": "volume",
+        "dimensions": {
+          "length": 121,
+          "width": 19,
+          "height": 1.5,
+          "unit": "cm"
+        },
         "densityKgM3": 15,
         "templateKey": "eps-15-volume",
         "notes": "采用原表425元/m³参考，非实时1688价格"
       }
     ]
   },
-  "assumptions": ["仅为迁移接口演示，尺寸、重量和BOM均为合成输入，不是供应商报价。"]
+  "assumptions": [
+    "仅为迁移接口演示，尺寸、重量和BOM均为合成输入，不是供应商报价。"
+  ]
 }
