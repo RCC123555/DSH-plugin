@@ -16,7 +16,7 @@
 
 - `packaging.cartonType` 新增：默认「对口箱」，可选「全搭侧封箱」；面积分别 `(长+2×高+2)×(2×宽+2×高+2)/10000`、`(长+2×高+2)×(2×宽+3×高+2)/10000`，单价均 4.2 元/m²；未知箱型报 `invalid_carton_type`。
 - 默认 EPS 由「上下各 1 片共 2 片」改为 **4 整片**：上下各 1 片 `(长−3)×(宽−3)` + 前后两面各 1 片 `(长−3)×(高−3)`；`epsCoverage` 分 `topBottom`/`frontBack` 统计，任一类不足 2 片报 `insufficient_eps_coverage` 并阻止含税报价；BOM 底稿改为 H16/H17 两行计数与 `F18:I19` 结论，含税公式改为 `AND(H16>=2,H17>=2)`。
-- 测试更新：pricing 60 例、quote/batch/single-accessory 夹具改为 4 片 EPS；全量 147 例（141 pass / 0 fail / 6 skip）。
+- 测试更新：pricing 60 例、quote/batch/single-accessory 夹具改为 4 片 EPS；全量 150 例（144 pass / 0 fail / 6 skip）。
 
 # 3.2.0
 

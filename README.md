@@ -110,7 +110,7 @@ git push -u origin "新插件名"
 
 ```
 NODE="C:/Users/Lenovo/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/node/bin/node.exe"
-"$NODE" --test "hardware-quote/test/*.test.mjs"   # 147 例：141 pass / 0 fail / 6 skip（live 需 HWQ_LIVE=1）
+"$NODE" --test "hardware-quote/test/*.test.mjs"   # 150 例：144 pass / 0 fail / 6 skip（live 需 HWQ_LIVE=1）
 # 单独跑：pricing 60 + memory 13 + lookup + quote + batch + single-accessory + cdp-window + ali1688 离线（另 6 例 live）
 ```
 
