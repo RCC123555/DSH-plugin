@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "kind": "search",
+  "key": "search:keyword:内六角法兰面螺丝m6x15",
+  "capturedAt": "2026-11-17T04:01:22.963Z",
+  "storedAt": "2026-11-17T04:01:22.966Z",
+  "source": {
+    "method": "keyword",
+    "keyword": "内六角法兰面螺丝 M6*15",
+    "imagePath": null,
+    "limit": 2,
+    "sameSpecOnly": false,
+    "backend": "git"
+  },
+  "payload": {
+    "method": "keyword",
+    "keyword": "内六角法兰面螺丝 M6*15",
+    "imagePath": null,
+    "searchedAt": "2026-11-17T04:01:22.963Z",
+    "candidates": [
+      {
+        "url": "https://detail.1688.com/offer/1014844017854.html",
+        "title": "304不锈钢内六角法兰面螺丝圆柱头带垫螺丝带齿防滑螺栓M5M6M8M10",
+        "priceText": "¥0.24",
+        "price": 0.24,
+        "unitText": null,
+        "moqText": null,
+        "company": "东莞市三鹏五金有限公司",
+        "soldText": null,
+        "snippet": "304不锈钢内六角法兰面螺丝圆柱头带垫螺丝带齿防滑螺栓M5M6M8M10 好评率100%的口碑商品 ¥ 0 .24 运费5元 5400+件 退货包运费 先采后付 官方物流 回头率 56% 东莞市三鹏五金有限公司",
+        "specMatch": {
+          "matched": false,
+          "reason": "螺纹规格不符：要求 M6，候选未标注螺纹；长度规格不符：要求 15，候选未标注长度"
+        },
+        "capturedAt": "2026-11-17T04:01:22.962Z",
+        "evidence": {
+          "kind": "dom",
+          "pageUrl": "https://s.1688.com/selloffer/offer_search.htm?keywords=%C4%DA%C1%F9%BD%C7%B7%A8%C0%BC%C3%E6%C2%DD%CB%BF%20M6*15",
+          "snippet": "304不锈钢内六角法兰面螺丝圆柱头带垫螺丝带齿防滑螺栓M5M6M8M10 好评率100%的口碑商品 ¥ 0 .24 运费5元 5400+件 退货包运费 先采后付 官方物流 回头率 56% 东莞市三鹏五金有限公司",
+          "note": "来自页面可见商品卡片"
+        },
+        "matchHint": "匹配关键词 1/2（部分词元命中 1/2）",
+        "keywordMatched": 1,
+        "keywordPartial": 1
+      },
+      {
+        "url": "https://detail.1688.com/offer/1074587395737.html",
+        "title": "8.8级圆柱头内六角法兰面螺丝铁镀蓝白锌带齿法兰螺栓M4M5M6M8M10",
+        "priceText": "¥0.01",
+        "price": 0.01,
+        "unitText": null,
+        "moqText": null,
+        "company": "深圳市六图五金制造有限公司",
+        "soldText": null,
+        "snippet": "8.8级圆柱头内六角法兰面螺丝铁镀蓝白锌带齿法兰螺栓M4M5M6M8M10 ¥ 0 .01 运费3元 退货包运费 先采后付 7天无理由 回头率 49% 深圳市六图五金制造有限公司",
+        "specMatch": {
+          "matched": false,
+          "reason": "螺纹规格不符：要求 M6，候选未标注螺纹；长度规格不符：要求 15，候选未标注长度"
+        },
+        "capturedAt": "2026-11-17T04:01:22.962Z",
+        "evidence": {
+          "kind": "dom",
+          "pageUrl": "https://s.1688.com/selloffer/offer_search.htm?keywords=%C4%DA%C1%F9%BD%C7%B7%A8%C0%BC%C3%E6%C2%DD%CB%BF%20M6*15",
+          "snippet": "8.8级圆柱头内六角法兰面螺丝铁镀蓝白锌带齿法兰螺栓M4M5M6M8M10 ¥ 0 .01 运费3元 退货包运费 先采后付 7天无理由 回头率 49% 深圳市六图五金制造有限公司",
+          "note": "来自页面可见商品卡片"
+        },
+        "matchHint": "匹配关键词 1/2（部分词元命中 1/2）",
+        "keywordMatched": 1,
+        "keywordPartial": 1
+      }
+    ],
+    "nearMisses": [],
+    "rawCount": 51,
+    "note": "未从 HTML 解析出候选（页面可能是 JS 壳或被重定向）；DOM 可见商品卡片 51 个；原始候选 51 个，按 limit=2 返回 2 个；搜索页是 JS 渲染，HTML 解析未命中，使用可见 DOM 文本；单位/MOQ 可能缺失，需在详情页确认",
+    "url": "https://s.1688.com/selloffer/offer_search.htm?keywords=%C4%DA%C1%F9%BD%C7%B7%A8%C0%BC%C3%E6%C2%DD%CB%BF%20M6*15",
+    "limit": 2,
+    "sameSpecOnly": false
+  }
+}
