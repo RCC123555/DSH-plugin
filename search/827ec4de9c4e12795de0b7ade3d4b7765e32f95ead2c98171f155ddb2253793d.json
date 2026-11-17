@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "kind": "search",
+  "key": "search:keyword:不锈钢合页4寸",
+  "capturedAt": "2026-11-17T04:11:39.107Z",
+  "storedAt": "2026-11-17T04:11:39.109Z",
+  "source": {
+    "method": "keyword",
+    "keyword": "不锈钢合页 4寸",
+    "imagePath": null,
+    "limit": 1,
+    "sameSpecOnly": false,
+    "backend": "git"
+  },
+  "payload": {
+    "method": "keyword",
+    "keyword": "不锈钢合页 4寸",
+    "imagePath": null,
+    "searchedAt": "2026-11-17T04:11:39.107Z",
+    "candidates": [
+      {
+        "url": "https://detail.1688.com/offer/996583331388.html",
+        "title": "不锈钢平开合页4寸5寸木门黑色枪灰合页加厚静音轴承房门子母合页",
+        "priceText": "¥2.49",
+        "price": 2.49,
+        "unitText": null,
+        "moqText": null,
+        "company": "揭阳市榕城区金优索特五金制品厂",
+        "soldText": "3.3万+",
+        "snippet": "不锈钢平开合页4寸5寸木门黑色枪灰合页加厚静音轴承房门子母合页 不锈钢合页 ｜ 不锈钢 ｜ 电镀 ¥ 2 .49 运费1.8元 全网3.3万+件 退货包运费 明天达 先采后付 回头率 49% 揭阳市榕城区金优索特五金制品厂",
+        "specMatch": {
+          "matched": true,
+          "reason": ""
+        },
+        "specMatched": true,
+        "capturedAt": "2026-11-17T04:11:39.107Z",
+        "evidence": {
+          "kind": "dom",
+          "pageUrl": "https://s.1688.com/selloffer/offer_search.htm?keywords=%B2%BB%D0%E2%B8%D6%BA%CF%D2%B3%204%B4%E7",
+          "snippet": "不锈钢平开合页4寸5寸木门黑色枪灰合页加厚静音轴承房门子母合页 不锈钢合页 ｜ 不锈钢 ｜ 电镀 ¥ 2 .49 运费1.8元 全网3.3万+件 退货包运费 明天达 先采后付 回头率 49% 揭阳市榕城区金优索特五金制品厂",
+          "note": "来自页面可见商品卡片"
+        },
+        "matchHint": "匹配关键词 2/2（部分词元命中 2/2）",
+        "keywordMatched": 2,
+        "keywordPartial": 2
+      }
+    ],
+    "nearMisses": [],
+    "rawCount": 46,
+    "note": "未从 HTML 解析出候选（页面可能是 JS 壳或被重定向）；DOM 可见商品卡片 46 个；原始候选 46 个，按 limit=1 返回 1 个；搜索页是 JS 渲染，HTML 解析未命中，使用可见 DOM 文本；单位/MOQ 可能缺失，需在详情页确认",
+    "url": "https://s.1688.com/selloffer/offer_search.htm?keywords=%B2%BB%D0%E2%B8%D6%BA%CF%D2%B3%204%B4%E7",
+    "limit": 1,
+    "sameSpecOnly": false
+  }
+}
