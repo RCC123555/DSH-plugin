@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "kind": "search",
+  "key": "search:keyword:铁方管围栏",
+  "capturedAt": "2026-11-17T04:01:47.126Z",
+  "storedAt": "2026-11-17T04:01:47.128Z",
+  "source": {
+    "method": "keyword",
+    "keyword": "铁方管 围栏",
+    "imagePath": null,
+    "limit": 1,
+    "sameSpecOnly": false,
+    "backend": "git"
+  },
+  "payload": {
+    "method": "keyword",
+    "keyword": "铁方管 围栏",
+    "imagePath": null,
+    "searchedAt": "2026-11-17T04:01:47.126Z",
+    "candidates": [
+      {
+        "url": "https://detail.1688.com/offer/1040996499680.html",
+        "title": "【严选】加厚加粗方管宠物围栏自由拼接狗笼猫笼源头工厂直销批发",
+        "priceText": "¥84.3",
+        "price": 84.3,
+        "unitText": null,
+        "moqText": null,
+        "company": "加厚加粗方管宠物围栏自由拼接狗笼猫笼源头工厂",
+        "soldText": null,
+        "snippet": "【严选】加厚加粗方管宠物围栏自由拼接狗笼猫笼源头工厂直销批发 ¥ 84 .3 运费11.6元 退货包运费 3天达 先采后付 回头率 56% 遵化市呆呆宝宠物用品有限公司",
+        "specMatch": {
+          "matched": true,
+          "reason": ""
+        },
+        "specMatched": true,
+        "capturedAt": "2026-11-17T04:01:47.125Z",
+        "evidence": {
+          "kind": "dom",
+          "pageUrl": "https://s.1688.com/selloffer/offer_search.htm?keywords=%CC%FA%B7%BD%B9%DC%20%CE%A7%C0%B8",
+          "snippet": "【严选】加厚加粗方管宠物围栏自由拼接狗笼猫笼源头工厂直销批发 ¥ 84 .3 运费11.6元 退货包运费 3天达 先采后付 回头率 56% 遵化市呆呆宝宠物用品有限公司",
+          "note": "来自页面可见商品卡片"
+        },
+        "matchHint": "匹配关键词 1/2（部分词元命中 2/2）",
+        "keywordMatched": 1,
+        "keywordPartial": 2
+      }
+    ],
+    "nearMisses": [],
+    "rawCount": 30,
+    "note": "未从 HTML 解析出候选（页面可能是 JS 壳或被重定向）；DOM 可见商品卡片 30 个；原始候选 30 个，按 limit=1 返回 1 个；搜索页是 JS 渲染，HTML 解析未命中，使用可见 DOM 文本；单位/MOQ 可能缺失，需在详情页确认",
+    "url": "https://s.1688.com/selloffer/offer_search.htm?keywords=%CC%FA%B7%BD%B9%DC%20%CE%A7%C0%B8",
+    "limit": 1,
+    "sameSpecOnly": false
+  }
+}
