@@ -50,7 +50,7 @@ github:RCC123555/DSH-plugin#五金报价
 想锁版本、避免两台机器随上游漂移，就钉 tag（推荐，tag 名带插件前缀）：
 
 ```
-github:RCC123555/DSH-plugin#五金报价-v3.3.0
+github:RCC123555/DSH-plugin#五金报价-v3.4.0
 ```
 
 装好后在 profile 里登记为 `hardware-quote-dsh-plugin`，`cordis.patch.yml` 自动插入 id `hardware-quote`。
@@ -73,7 +73,7 @@ git add -A && git commit -m "feat: 新插件名 初始提交"
 git push -u origin "新插件名"
 ```
 
-- tag 带插件前缀，避免跨分支撞名：`五金报价-v3.3.0`、`新插件名-v1.0.0`
+- tag 带插件前缀，避免跨分支撞名：`五金报价-v3.4.0`、`新插件名-v1.0.0`
 - 好处：每个分支都满足「仓库根即包根」，`github:` spec 不需要 `#path:/子目录`，桌面端插件管理器能直接装。
 
 ## 怎么用
