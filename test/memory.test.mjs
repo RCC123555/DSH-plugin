@@ -183,11 +183,29 @@ test('只缓存成功且非空的结果', async t => {
   assert.equal((await rememberSearch({keywords: 'blocked', result: searchResult({blocked: {kind: 'captcha'}})})).stored, false)
   assert.equal((await rememberSearch({keywords: 'empty', result: searchResult({candidates: []})})).stored, false)
   assert.equal((await rememberOffer({result: offerResult({blocked: {kind: 'login'}})})).stored, false)
-  assert.equal((await rememberOffer({result: offerResult({offers: []})})).stored, false)
+  assert.equal((await rememberOffer({result: offerResult({offers: [], tiers: []})})).stored, false)
   assert.equal(isCacheableSearchResult(searchResult()), true)
   assert.equal(isCacheableSearchResult(searchResult({candidates: []})), false)
   assert.equal(isCacheableOfferResult(offerResult()), true)
-  assert.equal(isCacheableOfferResult(offerResult({offers: []})), false)
+  assert.equal(isCacheableOfferResult(offerResult({offers: [], tiers: []})), false)
+})
+
+test('单规格 offer 只有价格档位（无 SKU 行）也能写入并命中记忆', async t => {
+  await setupRepo(t)
+  const tiersOnly = offerResult({offers: []})
+  const written = await rememberOffer({result: tiersOnly})
+  assert.equal(written.stored, true)
+  const hit = await getOfferMemory({url: tiersOnly.url})
+  assert.equal(hit.hit, true)
+  assert.deepEqual(hit.entry.payload.offers, [])
+  assert.deepEqual(hit.entry.payload.tiers, tiersOnly.tiers)
+})
+
+test('记忆写入不再被 useMemory/refresh 开关门控（读写解耦回归）', async () => {
+  const source = await fsp.readFile(new URL('../lib/ali1688.mjs', import.meta.url), 'utf8')
+  assert.match(source, /result\.memorySaved = await rememberSearch\(/)
+  assert.match(source, /result\.memorySaved = await rememberOffer\(/)
+  assert.doesNotMatch(source, /if \(useMemory\) \{\s*result\.memorySaved/)
 })
 
 test('详情记忆写入命中，并保留 SKU 供当前 skuHint 重选', async t => {
@@ -311,6 +329,31 @@ test('HWQ_MEMORY_DIR 目录后端与 HWQ_MEMORY=0 关闭记忆', async t => {
   setEnv({HWQ_MEMORY: '0'})
   assert.equal((await getSearchMemory({keywords: 'dirback'})).hit, false)
   assert.equal((await rememberSearch({keywords: 'dirback', result: searchResult()})).stored, false)
+})
+
+test('push 失败会落盘待推送标记，远端恢复后读取即补推并清除标记', async t => {
+  const {root, bare, dir} = await setupRepo(t)
+  const goodUrl = `file://${bare.replace(/\\/g, '/')}`
+  // 先正常写入一次，完成 clone 与首次 push
+  const seeded = await rememberSearch({keywords: 'push-seed', result: searchResult(), stateDir: root})
+  assert.equal(seeded.stored, true)
+  // 把 origin 指向不存在的仓库：本地 commit 仍成功，push 必然失败
+  git(['remote', 'set-url', 'origin', 'file:///nonexistent/hwq-memory.git'], dir)
+  const written = await rememberSearch({keywords: 'push-retry', result: searchResult(), stateDir: root})
+  assert.equal(written.stored, true)
+  assert.equal(written.push?.pushed, false)
+  const marker = path.join(root, 'price-memory-pending-push.json')
+  assert.equal(fs.existsSync(marker), true)
+  const before = await statusMemory({stateDir: root})
+  assert.equal(before.pendingPushMarked, true)
+  assert.equal(before.pendingPush >= 1, true)
+  // 恢复远端后，读取记忆时补推并清除标记
+  git(['remote', 'set-url', 'origin', goodUrl], dir)
+  await getSearchMemory({keywords: 'push-retry', stateDir: root})
+  assert.equal(fs.existsSync(marker), false)
+  const after = await statusMemory({stateDir: root})
+  assert.equal(after.pendingPushMarked, false)
+  assert.equal(after.pendingPush, 0)
 })
 
 test('sync 在 git 后端拉取远端更新', async t => {

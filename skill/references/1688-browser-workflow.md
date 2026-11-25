@@ -2,7 +2,7 @@
 
 报价查价前必须读取本文件。插件自带持久 Chrome 与零依赖 CDP 客户端，查价直接用 `hwq_1688_*` 工具，不依赖宿主浏览器工具、ego 工具或用户手动开浏览器。工具只执行真实页面操作；计划、参数校验、搜索结果页都不能当作已访问详情的证明。
 
-**查价顺序（3.3.0）**：`hwq_1688_search`/`hwq_1688_offer` 会先 pull GitHub `price-memory` 分支的价格记忆 → 命中且抓取未超过 180 天直接用（返回 `fromMemory:true`、`cachedAt`、`memoryAgeDays`）→ 超过 180 天必须重新查询并覆盖记忆 → 记忆中没有才真正打开 1688 搜索/详情。`useMemory:false` 用于明确要求实时价的场景；`refresh:true` 强制重查。命中记忆时 `queriedAt` 仍是原始抓取日期，不得写成今天，也不得把记忆价说成刚查的实时价。
+**查价顺序（3.3.0）**：`hwq_1688_search`/`hwq_1688_offer` 会先 pull GitHub `price-memory` 分支的价格记忆 → 命中且抓取未超过 180 天直接用（返回 `fromMemory:true`、`cachedAt`、`memoryAgeDays`）→ 超过 180 天必须重新查询并覆盖记忆 → 记忆中没有才真正打开 1688 搜索/详情。默认就会查记忆，**不要再传 `useMemory`**（3.4.0 起已从 schema 移除）；只有明确要最新价才传 `refresh:true`。读写已解耦：`refresh:true` 只跳过读取，这次抓到的结果照样写回记忆。同一关键词 10 分钟内重复搜索会返回 `deduped:true` 复用上次结果，不要重试。命中记忆时 `queriedAt` 仍是原始抓取日期，不得写成今天，也不得把记忆价说成刚查的实时价。
 
 ## 登录与浏览器生命周期
 

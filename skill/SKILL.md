@@ -19,7 +19,7 @@
 ## 标准流程（5 步）
 
 1. **读规则、备输入**：读 `references/quotation-rules.md`。收集图片、尺寸（cm/mm/m）、净重或毛重、订单量（默认 500）、每箱件数、喷涂与包装；列 BOM 与配件估重，记入 `assumptions`。尺寸单位不明必须询问，不能把 mm 当 cm。
-2. **查价**：读 `references/1688-browser-workflow.md`。顺序固定：先让 `hwq_1688_search`/`hwq_1688_offer` 自动查价格记忆（pull GitHub `price-memory` 分支）→ 命中且上次抓取在 **180 天（6 个月）** 内直接用，返回 `fromMemory:true`；超过 180 天或 `refresh:true` 必须重新查并覆盖记忆；记忆里没有才走 1688 搜索/详情。插件 Chrome 正常查价全程后台、不抢前台；命中登录墙/验证码时会**立即**把窗口置前、截图并返回 `userActionRequired`（同时写 `challenge.json`）——把「需要你处理：…」原样转告用户，请其在该窗口扫码/过验证码；用户完成后重新执行同一个查询，成功后工具会自动收回后台。用户显式 `hwq_1688_login action:"open"` 总是置前，`show`/`hide` 可手动调出/收回。查价时 `hwq_1688_search`（关键词或以图搜款）→ `hwq_1688_offer` 读详情所选 SKU 的普通批发价；同规格 3–5 个候选用 `hwq_1688_average` 归一取均价。每条价必须带真实证据；记忆命中的 `queriedAt`/`capturedAt` 保留原始日期，不得改写成今天。
+2. **查价**：读 `references/1688-browser-workflow.md`。顺序固定：先让 `hwq_1688_search`/`hwq_1688_offer` 自动查价格记忆（pull GitHub `price-memory` 分支）→ 命中且上次抓取在 **180 天（6 个月）** 内直接用，返回 `fromMemory:true`；超过 180 天或 `refresh:true` 必须重新查并覆盖记忆；记忆里没有才走 1688 搜索/详情。插件 Chrome 正常查价全程后台、不抢前台；命中登录墙/验证码时会**立即**把窗口置前、截图并返回 `userActionRequired`（同时写 `challenge.json`）——把「需要你处理：…」原样转告用户，请其在该窗口扫码/过验证码；用户完成后重新执行同一个查询，成功后工具会自动收回后台。用户显式 `hwq_1688_login action:"open"` 总是置前，`show`/`hide` 可手动调出/收回。查价时 `hwq_1688_search`（关键词或以图搜款）→ `hwq_1688_offer` 读详情所选 SKU 的普通批发价；同规格 3–5 个候选用 `hwq_1688_average` 归一取均价。每条价必须带真实证据；记忆命中的 `queriedAt`/`capturedAt` 保留原始日期，不得改写成今天。`hwq_1688_search`/`hwq_1688_offer` 默认就会查记忆，**不要再传 `useMemory`**；只有确实要最新价才传 `refresh:true`（是否写入记忆不受 `refresh` 影响）。
 3. **核算**：把报价 JSON 交给 `hwq_calculate`，看 `ready`、`blockingIssues`、`draftOnly`、`weights`、`costs`、`totals`。仅缺价阻塞才可草稿（`draftOnly`，导出时显式传 `allowDraft:true`）；重量矛盾、尺寸缺失、包装不完整必须先修，不得靠草稿绕过。
 4. **导出**：单产品用 `hwq_quote`，多产品用 `hwq_quote_batch`（`items` 逐款给输入与分表简称 `name`，`label` 填批次名）。返回 `output`、`sheets` 与 `checks`（批量另有 `verification`）。用 `checks` 核对：`formulaErrors` 为空、工作表齐全、重量与合计与第 3 步一致、链接与图片已写入，并与底稿「脚本复算（只读校验）」区块逐项对照；批量交付还要确认 `00_汇总` 的 C/P/M/U/T/Q 与各分表一致、合计行正确。
 5. **交付**：`checks`/`verification` 通过后交付 `output`；多产品只交付合并后的那一个文件（分表顺序与 `items` 一致，用产品简称命名分表）。复核通过即清理本次中间文件，历史正式报价不覆盖、不删。
@@ -33,3 +33,14 @@
 - **仅缺价可草稿**：只有缺价（`missing_price`）允许草稿导出（文件名注明待核价、相关金额与总价 NA）；重量、尺寸、包装等阻塞问题不得草稿放行。
 - **包装默认口径**：纸箱默认「对口箱」（`packaging.cartonType` 可改「全搭侧封箱」），面积按对应公式算，不默认全搭侧封；EPS 默认 4 整片——上下各 1 片（长×宽各−3cm）+ 前后两面各 1 片（长×高各−3cm）。用户明确箱型/片材尺寸时优先，实物结构与默认口径不符要在 `assumptions`/完成报告中说明。
 - **用户说明优先**：用户确认的单价、重量、包装、费率优先于模板与默认值；未提及项沿用 `references/` 中的规则。默认费率不是市场价，不得据以伪造报价。
+
+## 调用预算（硬约束）
+
+报价的实际花费 ≈ 工具回合数 × 当时上下文大小，所以省的是回合，不是省字。
+
+- **单产品 ≤25 个工具回合**（一次 ≤5 款合计 ≤60）。到 25 回合还没查完，就把剩下的写成 `unitPrice:null` + `sourceType:"pending"` 记进 `notes`，先出草稿，不要连刷。
+- **同一物料最多 2 次搜索**：1 次关键词（或以图搜款）+ 最多 1 次换更宽的词/改以图搜款。第 3 次起一律留 `pending`。工具返回 `deduped:true` 表示 10 分钟内已真实抓过、本次复用，**不要重试**；返回 `fromMemory:true` 表示记忆命中，已查完。
+- **不要读插件源码**：`lib/*.mjs`、`test/*`、`examples/*` 都不是报价依据。核算口径、费率、公式、未税/含税换算全在 `references/`（尤其 `pricing-basis.md` 的口径速查表）。
+- **不要重复读同一文件**：一次报价里同一个 `references/` 文件最多读 1 次；已经在上下文里的内容不要重读、不要 grep 全文确认。
+- **验证码只处理一次**：返回 `userActionRequired` 时把「需要你处理：…」原样转告用户并等待；连续换词重试仍会被拦，只浪费回合。
+- **别用 read_image 复核截图**：`hwq_1688_search`/`hwq_1688_offer` 的文本结果已含价格与规格；截图路径只在需要向用户说明验证码时转述，不要自己读图。

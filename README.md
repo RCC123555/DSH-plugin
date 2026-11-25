@@ -1,10 +1,19 @@
-# 五金产品报价 · DSH 插件（hardware-quote 3.3.0）
+# 五金产品报价 · DSH 插件（hardware-quote 3.4.0）
 
-把 Codex 版 `hardware-quote` 2.4.1 重做成 DeepSeek Harness 插件：**1 个技能 + 8 个 `hwq_*` 工具**，保留原有全部报价规则，并重做 1688 自动登录/搜索/证据这条最薄弱的能力。3.3.0 起增加**跨机共享的物料价格记忆**与**后台查价 + 验证时弹窗**策略。
+把 Codex 版 `hardware-quote` 2.4.1 重做成 DeepSeek Harness 插件：**1 个技能 + 8 个 `hwq_*` 工具**，保留原有全部报价规则，并重做 1688 自动登录/搜索/证据这条最薄弱的能力。3.3.0 起增加**跨机共享的物料价格记忆**与**后台查价 + 验证时弹窗**策略；3.4.0 修掉「记忆不生效、查询白花钱」。
 
 - 技能名：`hardware-quote`
 - 包名：`hardware-quote-dsh-plugin`（bundle 入口 `lib/index.mjs`，`inject: ["tools"]`）
 - 依赖：宿主 Node（v24+）、DSH 运行时自带 Python（openpyxl + Pillow）；**不需要** LibreOffice、不需要 MCP、不需要第三方 npm 包
+
+## 3.4.0 新增
+
+- **读写解耦（关键修复）**：`useMemory`/`refresh` 从此只影响「是否读记忆」，抓到的新结果**无条件写回**。旧版把写入也挂在同一个开关上，模型一旦传 `refresh:true` 或 `useMemory:false`，整轮抓取就全丢——历史 34 次详情抓取 0 条落盘、3 条提交一直推不上去，就是这么来的。
+- **单规格 offer 也能记住**：`isCacheableOfferResult` 允许「只有价格档位、没有 SKU 行」的详情页入库（螺丝/方管/扎带这类最常见），并允许 tiers-only 命中。
+- **push 失败不再静默丢**：失败时把待推送标记写到 `~/.dsh/hardware-quote/price-memory-pending-push.json`（仓库外），下次读写记忆补推（每 5 分钟最多一次），成功后自动清除；`hwq_price_memory status` 新增 `pendingPushMarked`。
+- **同一关键词 10 分钟内去重**：重复搜索直接复用上次真实抓取并返回 `deduped:true`（历史一次报价对同一关键词连刷 5 次）；被验证码拦下或空结果返回 `retryAdvice`，提示下一步而不是连刷。
+- **公开参数收敛**：`hwq_1688_search`/`hwq_1688_offer` 的 `useMemory` 从 schema 移除（内部仍兼容），只保留 `refresh`；搜索 render 瘦身（每条候选只回 URL/标题/价格/单位/MOQ，去掉 `matchHint` 与 `evidence.snippet`），并回显记忆命中的记忆状态与「已存入/待推送」。
+- **技能省钱约束**：`SKILL.md` 新增「调用预算」硬约束（单产品 ≤25 工具回合、同一物料 ≤2 次搜索、禁止读 `lib/`/`test/`/`examples/`）；`references/pricing-basis.md` 增加口径速查表，核对费率公式不必再看源码。
 
 ## 3.3.0 新增
 

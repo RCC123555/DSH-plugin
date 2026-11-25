@@ -1,3 +1,23 @@
+# 3.4.0
+
+## 价格记忆「写了但没生效」的根因修复
+
+- **读写解耦**：`lib/ali1688.mjs` 原先 `const useMemory = useMemory !== false && refresh !== true` 同时门控读与写，`if (useMemory) rememberSearch/rememberOffer` 让 `refresh:true` 或 `useMemory:false` 的整轮抓取全部丢弃（历史 34 次 offer 抓取 0 条落盘）。现在 `readMemory` 只决定是否读，`result.memorySaved = await rememberSearch/rememberOffer(...)` 无条件执行。
+- **单规格 offer 可缓存**：`isCacheableOfferResult` 由 `offers.length>0` 放宽为 `offers.length>0 || tiers.length>0`（保留 `!blocked`/`!error`/`detail.1688.com` 校验）；`openOffer` 记忆命中分支允许 tiers-only 返回。
+- **待推送落盘**：push 失败写 `stateDir/price-memory-pending-push.json`（仓库外，不被 `git add` 提交）；`getSearchMemory`/`getOfferMemory` 读取时补推（每 5 分钟最多一次），成功后删除标记；`statusMemory` 新增 `pendingPushMarked`。
+- **关键词去重与重试提示**：`searchOffers` 对同一关键词/图片 10 分钟内复用上次真实结果并返回 `deduped:true`；被拦截返回 `retryAdvice`（先处理验证码再重试同一词）、空结果返回换词/以图搜款建议。
+
+## 工具输出瘦身与参数收敛
+
+- `hwq_1688_search`/`hwq_1688_offer` 移除公开 `useMemory` 参数（内部仍兼容旧调用），只保留 `refresh`。
+- 搜索 render 每条候选只留标题（≤40 字）/URL/价格·单位·MOQ，去掉 `matchHint` 与 `evidence.snippet`；近似候选只留标题与 URL；回显记忆状态（命中/首次查询/已存入/待推送）与 `retryAdvice`。
+- `skill/SKILL.md` 新增「调用预算」硬约束；`references/pricing-basis.md` 新增口径速查表与「不要读 `lib/*.mjs`」硬规则；`references/quotation-rules.md` 增加同款提示。
+
+## 测试
+
+- `test/memory.test.mjs` 13 → 16 例：新增「单规格 tiers-only 可写入并命中」「读写解耦回归（源码断言无 `if (useMemory) { result.memorySaved`）」「push 失败落盘标记 + 恢复远端后补推清除」；原「只缓存成功非空」改为 `offers:[] + tiers:[]` 才算不可缓存。
+- 全量 153 例（147 pass / 0 fail / 6 skip）。
+
 # 3.3.0
 
 ## 物料价格记忆（跨机共享）
