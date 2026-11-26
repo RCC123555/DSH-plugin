@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "kind": "offer",
+  "key": "offer:1073762282268",
+  "capturedAt": "2026-11-26T03:21:49.506Z",
+  "storedAt": "2026-11-26T03:21:49.508Z",
+  "source": {
+    "method": "offer",
+    "url": "https://detail.1688.com/offer/1073762282268.html",
+    "skuHint": "折叠合页 黑色",
+    "backend": "git"
+  },
+  "payload": {
+    "url": "https://detail.1688.com/offer/1073762282268.html",
+    "title": "源头厂家90度自锁折叠合页多功能家具五金桌椅折叠桌铰链五金配件",
+    "company": "佛山市南海区欧铂丽金属制品厂",
+    "unit": "个",
+    "saleNum": "200+",
+    "beginNum": 2,
+    "tiers": [
+      {
+        "price": 2.3,
+        "priceText": "¥2.30",
+        "beginAmount": 2
+      },
+      {
+        "price": 2.5,
+        "priceText": "¥2.50",
+        "beginAmount": 2
+      }
+    ],
+    "props": [
+      {
+        "fid": 1234,
+        "prop": "规格",
+        "values": [
+          "黑胚0-90度自锁折叠铰（左）",
+          "彩锌0-90度自锁折叠铰（左）",
+          "黑胚0-90度自锁折叠铰（右）",
+          "彩锌0-90度自锁折叠铰（右）"
+        ]
+      }
+    ],
+    "offers": [
+      {
+        "skuId": "6289778539565",
+        "specId": "088e016ac93444c9b707499c6ee044cd",
+        "props": "黑胚0-90度自锁折叠铰（左）",
+        "priceText": "¥2.30",
+        "price": 2.3,
+        "priceOriginal": 2.3,
+        "unit": "个",
+        "moqText": "≥2个",
+        "moq": 2,
+        "canBookCount": 9985,
+        "saleCount": 0,
+        "selected": true
+      },
+      {
+        "skuId": "6289778539566",
+        "specId": "a6d8dc6ac32b310e011166b3d4dd2122",
+        "props": "彩锌0-90度自锁折叠铰（左）",
+        "priceText": "¥2.50",
+        "price": 2.5,
+        "priceOriginal": 2.5,
+        "unit": "个",
+        "moqText": "≥2个",
+        "moq": 2,
+        "canBookCount": 9869,
+        "saleCount": 0
+      },
+      {
+        "skuId": "6289778539568",
+        "specId": "7309a87605beb3b825cb62c3984ac946",
+        "props": "彩锌0-90度自锁折叠铰（右）",
+        "priceText": "¥2.50",
+        "price": 2.5,
+        "priceOriginal": 2.5,
+        "unit": "个",
+        "moqText": "≥2个",
+        "moq": 2,
+        "canBookCount": 9869,
+        "saleCount": 0
+      },
+      {
+        "skuId": "6289778539567",
+        "specId": "947c06df79eef1ea0957bd11829ecffa",
+        "props": "黑胚0-90度自锁折叠铰（右）",
+        "priceText": "¥2.30",
+        "price": 2.3,
+        "priceOriginal": 2.3,
+        "unit": "个",
+        "moqText": "≥2个",
+        "moq": 2,
+        "canBookCount": 9997,
+        "saleCount": 0
+      }
+    ],
+    "capturedAt": "2026-11-26T03:21:49.506Z",
+    "domNotes": "window.context 可读：SKU 属性 1 组、SKU 明细 4 条、价格档位 2 条；DOM 价格文本「¥ 2 . 30 ~ ¥ 2 . 50」；DOM 供应商文本「佛山市南海区欧铂丽金属制品厂」",
+    "source": "window.context",
+    "specHint": "折叠合页 黑色"
+  }
+}
