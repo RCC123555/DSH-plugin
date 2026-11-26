@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "kind": "offer",
+  "key": "offer:982732482040",
+  "capturedAt": "2026-11-26T03:21:15.008Z",
+  "storedAt": "2026-11-26T03:21:15.011Z",
+  "source": {
+    "method": "offer",
+    "url": "https://detail.1688.com/offer/982732482040.html",
+    "skuHint": "黑色 S 钩",
+    "backend": "git"
+  },
+  "payload": {
+    "url": "https://detail.1688.com/offer/982732482040.html",
+    "title": "铁质S型挂钩黑色白色衣钩超市S钩多用途厨房宿舍挂包包衣服毛巾钩",
+    "company": "修武县一品商贸有限公司",
+    "unit": "件",
+    "saleNum": "2.4万+",
+    "beginNum": 2,
+    "tiers": [
+      {
+        "price": 0.18,
+        "priceText": "¥0.18",
+        "beginAmount": 2
+      },
+      {
+        "price": 0.22,
+        "priceText": "¥0.22",
+        "beginAmount": 2
+      }
+    ],
+    "props": [
+      {
+        "fid": 3216,
+        "prop": "颜色",
+        "values": [
+          "白色",
+          "黑色",
+          "灰色"
+        ]
+      }
+    ],
+    "offers": [
+      {
+        "skuId": "5944614361063",
+        "specId": "6a67a0c231ddcbfe73c4ab1dfcaa0ced",
+        "props": "灰色",
+        "priceText": "¥0.22",
+        "price": 0.22,
+        "priceOriginal": 0.22,
+        "unit": "件",
+        "moqText": "≥2件",
+        "moq": 2,
+        "canBookCount": 0,
+        "saleCount": 0
+      },
+      {
+        "skuId": "5944614361062",
+        "specId": "f561c4f7cdb23de81fc2303ebf1e8f55",
+        "props": "黑色",
+        "priceText": "¥0.18",
+        "price": 0.18,
+        "priceOriginal": 0.18,
+        "unit": "件",
+        "moqText": "≥2件",
+        "moq": 2,
+        "canBookCount": 79038,
+        "saleCount": 0,
+        "selected": true
+      },
+      {
+        "skuId": "5944614361061",
+        "specId": "a63c985e3358d02b842322fc287be521",
+        "props": "白色",
+        "priceText": "¥0.22",
+        "price": 0.22,
+        "priceOriginal": 0.22,
+        "unit": "件",
+        "moqText": "≥2件",
+        "moq": 2,
+        "canBookCount": 93394,
+        "saleCount": 0
+      }
+    ],
+    "capturedAt": "2026-11-26T03:21:15.008Z",
+    "domNotes": "window.context 可读：SKU 属性 1 组、SKU 明细 3 条、价格档位 2 条；DOM 价格文本「¥ 0 . 18 ~ ¥ 0 . 22」；DOM 供应商文本「修武县一品商贸有限公司」",
+    "source": "window.context",
+    "specHint": "黑色 S 钩"
+  }
+}
