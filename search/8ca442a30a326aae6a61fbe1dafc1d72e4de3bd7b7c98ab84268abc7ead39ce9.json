@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "kind": "search",
+  "key": "search:keyword:内六角螺丝螺母套装m6散装",
+  "capturedAt": "2026-11-26T03:22:35.838Z",
+  "storedAt": "2026-11-26T03:22:35.839Z",
+  "source": {
+    "method": "keyword",
+    "keyword": "内六角螺丝螺母套装 M6 散装",
+    "imagePath": null,
+    "limit": 4,
+    "sameSpecOnly": false,
+    "backend": "git"
+  },
+  "payload": {
+    "method": "keyword",
+    "keyword": "内六角螺丝螺母套装 M6 散装",
+    "imagePath": null,
+    "searchedAt": "2026-11-26T03:22:35.838Z",
+    "candidates": [
+      {
+        "url": "https://detail.1688.com/offer/628048530918.html",
+        "title": "亚马逊简装螺丝套装深度15mm孔直径M8插孔螺母M6内螺纹头部直径12",
+        "priceText": "¥18",
+        "price": 18,
+        "unitText": null,
+        "moqText": null,
+        "company": "深圳市欣盛五金有限公司",
+        "soldText": "5700+",
+        "snippet": "亚马逊简装螺丝套装深度15mm孔直径M8插孔螺母M6内螺纹头部直径12 ¥ 18 运费5元 全网5700+件 退货包运费 明天达 先采后付 回头率 50% 深圳市欣盛五金有限公司",
+        "specMatch": {
+          "matched": true,
+          "reason": ""
+        },
+        "specMatched": true,
+        "capturedAt": "2026-11-26T03:22:35.837Z",
+        "evidence": {
+          "kind": "dom",
+          "pageUrl": "https://s.1688.com/selloffer/offer_search.htm?keywords=%C4%DA%C1%F9%BD%C7%C2%DD%CB%BF%C2%DD%C4%B8%CC%D7%D7%B0%20M6%20%C9%A2%D7%B0",
+          "snippet": "亚马逊简装螺丝套装深度15mm孔直径M8插孔螺母M6内螺纹头部直径12 ¥ 18 运费5元 全网5700+件 退货包运费 明天达 先采后付 回头率 50% 深圳市欣盛五金有限公司",
+          "note": "来自页面可见商品卡片"
+        },
+        "matchHint": "匹配关键词 1/3（部分词元命中 2/3）",
+        "keywordMatched": 1,
+        "keywordPartial": 2
+      },
+      {
+        "url": "https://detail.1688.com/offer/862569814316.html",
+        "title": "12.9级沉头内六角螺丝螺母套装平头内六角螺栓螺帽组合M3M4M5M6M8",
+        "priceText": "¥0.08",
+        "price": 0.08,
+        "unitText": null,
+        "moqText": null,
+        "company": "深圳市豪生不锈钢制品有限公司",
+        "soldText": "1.8万+",
+        "snippet": "攀翔 12.9级沉头内六角螺丝螺母套装平头内六角螺栓螺帽组合M3M4M5M6M8 6mm ｜ DIN7991-1986 ｜ 12.9级 ¥ 0 .08 运费2元 全网1.8万+件 退货包运费 后天达 先采后付 回头率 59% 深圳市豪生不锈钢制品有限公司",
+        "specMatch": {
+          "matched": false,
+          "reason": "螺纹规格不符：要求 M6，候选未标注螺纹"
+        },
+        "capturedAt": "2026-11-26T03:22:35.837Z",
+        "evidence": {
+          "kind": "dom",
+          "pageUrl": "https://s.1688.com/selloffer/offer_search.htm?keywords=%C4%DA%C1%F9%BD%C7%C2%DD%CB%BF%C2%DD%C4%B8%CC%D7%D7%B0%20M6%20%C9%A2%D7%B0",
+          "snippet": "攀翔 12.9级沉头内六角螺丝螺母套装平头内六角螺栓螺帽组合M3M4M5M6M8 6mm ｜ DIN7991-1986 ｜ 12.9级 ¥ 0 .08 运费2元 全网1.8万+件 退货包运费 后天达 先采后付 回头率 59% 深圳市豪生不锈钢制品有限公司",
+          "note": "来自页面可见商品卡片"
+        },
+        "matchHint": "匹配关键词 2/3（部分词元命中 2/3）",
+        "keywordMatched": 2,
+        "keywordPartial": 2
+      },
+      {
+        "url": "https://detail.1688.com/offer/794281529485.html",
+        "title": "304不锈钢沉头内六角螺丝螺母套装平头内六角螺栓螺帽组合M5M6M8",
+        "priceText": "¥0.06",
+        "price": 0.06,
+        "unitText": null,
+        "moqText": null,
+        "company": "深圳市豪生不锈钢制品有限公司",
+        "soldText": "4.2万+",
+        "snippet": "304不锈钢沉头内六角螺丝螺母套装平头内六角螺栓螺帽组合M5M6M8 6mm ｜ 304不锈钢 ｜ DIN7991-1986 ¥ 0 .06 运费2元 全网4.2万+件 退货包运费 先采后付 代发包邮 回头率 59% 深圳市豪生不锈钢制品有限公司",
+        "specMatch": {
+          "matched": false,
+          "reason": "螺纹规格不符：要求 M6，候选未标注螺纹"
+        },
+        "capturedAt": "2026-11-26T03:22:35.837Z",
+        "evidence": {
+          "kind": "dom",
+          "pageUrl": "https://s.1688.com/selloffer/offer_search.htm?keywords=%C4%DA%C1%F9%BD%C7%C2%DD%CB%BF%C2%DD%C4%B8%CC%D7%D7%B0%20M6%20%C9%A2%D7%B0",
+          "snippet": "304不锈钢沉头内六角螺丝螺母套装平头内六角螺栓螺帽组合M5M6M8 6mm ｜ 304不锈钢 ｜ DIN7991-1986 ¥ 0 .06 运费2元 全网4.2万+件 退货包运费 先采后付 代发包邮 回头率 59% 深圳市豪生不锈钢制品有限公司",
+          "note": "来自页面可见商品卡片"
+        },
+        "matchHint": "匹配关键词 2/3（部分词元命中 2/3）",
+        "keywordMatched": 2,
+        "keywordPartial": 2
+      },
+      {
+        "url": "https://detail.1688.com/offer/845805279063.html",
+        "title": "10.9级沉头内六角螺丝螺母套装平头内六角螺栓螺帽组合M3M4M5M6M8",
+        "priceText": "¥0.03",
+        "price": 0.03,
+        "unitText": null,
+        "moqText": null,
+        "company": "深圳市固佳诺五金科技有限公司",
+        "soldText": null,
+        "snippet": "固佳诺 10.9级沉头内六角螺丝螺母套装平头内六角螺栓螺帽组合M3M4M5M6M8 6mm ｜ DIN7991-1986 ｜ 低碳钢 ¥ 0 .03 新人价 4500+件 包邮 退货包运费 后天达 回头率 53% 深圳市固佳诺五金科技有限公司",
+        "specMatch": {
+          "matched": false,
+          "reason": "螺纹规格不符：要求 M6，候选未标注螺纹"
+        },
+        "capturedAt": "2026-11-26T03:22:35.837Z",
+        "evidence": {
+          "kind": "dom",
+          "pageUrl": "https://s.1688.com/selloffer/offer_search.htm?keywords=%C4%DA%C1%F9%BD%C7%C2%DD%CB%BF%C2%DD%C4%B8%CC%D7%D7%B0%20M6%20%C9%A2%D7%B0",
+          "snippet": "固佳诺 10.9级沉头内六角螺丝螺母套装平头内六角螺栓螺帽组合M3M4M5M6M8 6mm ｜ DIN7991-1986 ｜ 低碳钢 ¥ 0 .03 新人价 4500+件 包邮 退货包运费 后天达 回头率 53% 深圳市固佳诺五金科技有限公司",
+          "note": "来自页面可见商品卡片"
+        },
+        "matchHint": "匹配关键词 2/3（部分词元命中 2/3）",
+        "keywordMatched": 2,
+        "keywordPartial": 2
+      }
+    ],
+    "nearMisses": [],
+    "rawCount": 46,
+    "note": "未从 HTML 解析出候选（页面可能是 JS 壳或被重定向）；DOM 可见商品卡片 46 个；原始候选 46 个，按 limit=4 返回 4 个；搜索页是 JS 渲染，HTML 解析未命中，使用可见 DOM 文本；单位/MOQ 可能缺失，需在详情页确认",
+    "url": "https://s.1688.com/selloffer/offer_search.htm?keywords=%C4%DA%C1%F9%BD%C7%C2%DD%CB%BF%C2%DD%C4%B8%CC%D7%D7%B0%20M6%20%C9%A2%D7%B0",
+    "limit": 4,
+    "sameSpecOnly": false
+  }
+}
