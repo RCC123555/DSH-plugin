@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "kind": "offer",
+  "key": "offer:893054816135",
+  "capturedAt": "2026-11-26T03:20:25.560Z",
+  "storedAt": "2026-11-26T03:20:25.562Z",
+  "source": {
+    "method": "offer",
+    "url": "https://detail.1688.com/offer/893054816135.html",
+    "skuHint": "2寸 万向 带刹车",
+    "backend": "git"
+  },
+  "payload": {
+    "url": "https://detail.1688.com/offer/893054816135.html",
+    "title": "加厚1.5寸2寸黑色金钻脚轮轻型pvc聚氨酯货架万向轮子静音带刹车",
+    "company": "阳江市锐驰工贸有限公司",
+    "unit": "件",
+    "saleNum": "2000+",
+    "beginNum": 6,
+    "tiers": [
+      {
+        "price": 1.6,
+        "priceText": "¥1.60",
+        "beginAmount": 6
+      },
+      {
+        "price": 8.8,
+        "priceText": "¥8.80",
+        "beginAmount": 6
+      }
+    ],
+    "props": [
+      {
+        "fid": 1236,
+        "prop": "规格型号",
+        "values": [
+          "轻型1.5寸定向轮",
+          "轻型1.5寸万向轮",
+          "轻型1.5寸万向刹车轮",
+          "轻型2寸定向轮",
+          "轻型2寸万向轮",
+          "轻型2寸万向刹车轮",
+          "中型2.5寸定向轮",
+          "中型2.5寸万向轮",
+          "中型2.5寸万向刹车轮"
+        ]
+      }
+    ],
+    "offers": [
+      {
+        "skuId": "5908360915356",
+        "specId": "a8685968270c129f2a8df0121d5f5ddd",
+        "props": "轻型1.5寸万向刹车轮",
+        "priceText": "¥2.50",
+        "price": 2.5,
+        "priceOriginal": 2.5,
+        "unit": "件",
+        "moqText": "≥6件",
+        "moq": 6,
+        "canBookCount": 19641,
+        "saleCount": 0
+      },
+      {
+        "skuId": "5908360915354",
+        "specId": "aa6047ed26acb0c201fb5fd4536abda9",
+        "props": "轻型1.5寸定向轮",
+        "priceText": "¥1.60",
+        "price": 1.6,
+        "priceOriginal": 1.6,
+        "unit": "件",
+        "moqText": "≥6件",
+        "moq": 6,
+        "canBookCount": 17124,
+        "saleCount": 0
+      },
+      {
+        "skuId": "5908360915360",
+        "specId": "91fb20815b85cf3faa51c5fc3cbaea9b",
+        "props": "中型2.5寸定向轮",
+        "priceText": "¥6.00",
+        "price": 6,
+        "priceOriginal": 6,
+        "unit": "件",
+        "moqText": "≥6件",
+        "moq": 6,
+        "canBookCount": 19994,
+        "saleCount": 0
+      },
+      {
+        "skuId": "5908360915359",
+        "specId": "91d97701fbdd00538b08367b0eb18e92",
+        "props": "轻型2寸万向刹车轮",
+        "priceText": "¥3.30",
+        "price": 3.3,
+        "priceOriginal": 3.3,
+        "unit": "件",
+        "moqText": "≥6件",
+        "moq": 6,
+        "canBookCount": 19910,
+        "saleCount": 0
+      },
+      {
+        "skuId": "5908360915358",
+        "specId": "c68d4ac31322f98fba58e75b55350ca3",
+        "props": "轻型2寸万向轮",
+        "priceText": "¥2.60",
+        "price": 2.6,
+        "priceOriginal": 2.6,
+        "unit": "件",
+        "moqText": "≥6件",
+        "moq": 6,
+        "canBookCount": 19545,
+        "saleCount": 0,
+        "selected": true
+      },
+      {
+        "skuId": "5908360915357",
+        "specId": "6acec03bd83cb68bd8a428eccd1b7be2",
+        "props": "轻型2寸定向轮",
+        "priceText": "¥2.20",
+        "price": 2.2,
+        "priceOriginal": 2.2,
+        "unit": "件",
+        "moqText": "≥6件",
+        "moq": 6,
+        "canBookCount": 19808,
+        "saleCount": 0
+      },
+      {
+        "skuId": "5908360915355",
+        "specId": "467cdda8b9e9314ae61bd47ea75da351",
+        "props": "轻型1.5寸万向轮",
+        "priceText": "¥2.00",
+        "price": 2,
+        "priceOriginal": 2,
+        "unit": "件",
+        "moqText": "≥6件",
+        "moq": 6,
+        "canBookCount": 19008,
+        "saleCount": 0
+      },
+      {
+        "skuId": "5908360915361",
+        "specId": "f852b65857c36c68ad4d83a39fc992a1",
+        "props": "中型2.5寸万向轮",
+        "priceText": "¥7.00",
+        "price": 7,
+        "priceOriginal": 7,
+        "unit": "件",
+        "moqText": "≥6件",
+        "moq": 6,
+        "canBookCount": 19994,
+        "saleCount": 0
+      },
+      {
+        "skuId": "5908360915362",
+        "specId": "09e47cc094ceb3e0b178f8f1f9fa2612",
+        "props": "中型2.5寸万向刹车轮",
+        "priceText": "¥8.80",
+        "price": 8.8,
+        "priceOriginal": 8.8,
+        "unit": "件",
+        "moqText": "≥6件",
+        "moq": 6,
+        "canBookCount": 19964,
+        "saleCount": 0
+      }
+    ],
+    "capturedAt": "2026-11-26T03:20:25.560Z",
+    "domNotes": "window.context 可读：SKU 属性 1 组、SKU 明细 9 条、价格档位 2 条；DOM 价格文本「¥ 1 . 10」；DOM 供应商文本「阳江市锐驰工贸有限公司」",
+    "source": "window.context",
+    "specHint": "2寸 万向 带刹车"
+  }
+}
