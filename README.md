@@ -42,7 +42,7 @@
 
 ## 安装
 
-已在本机 desktop profile 安装（`plugin_manager install_bundle` → `hardware-quote-dsh-plugin 3.0.1`）。重装/更新：
+本机 desktop profile 以 `link:` 方式安装（`hardware-quote-dsh-plugin 3.5.0` → `link:D:/工作/Projects/DSH/hardware-quote`），改完源码重载插件即生效。重装/更新：
 
 ```
 plugin_manager({action:"install_bundle", target:"D:/工作/Projects/DSH/hardware-quote"})
@@ -61,7 +61,7 @@ github:RCC123555/DSH-plugin#五金报价
 想锁版本、避免两台机器随上游漂移，就钉 tag（推荐，tag 名带插件前缀）：
 
 ```
-github:RCC123555/DSH-plugin#五金报价-v3.4.0
+github:RCC123555/DSH-plugin#五金报价-v3.5.0
 ```
 
 装好后在 profile 里登记为 `hardware-quote-dsh-plugin`，`cordis.patch.yml` 自动插入 id `hardware-quote`。
@@ -75,7 +75,7 @@ github:RCC123555/DSH-plugin#五金报价-v3.4.0
 一个仓库放多个插件：**每个插件一个分支，分支名 = 插件名**；不建子目录、不做 monorepo，每个分支的根目录就是那个插件的包根。
 
 - 本插件在分支 `五金报价`：`github:RCC123555/DSH-plugin#五金报价`（不写 `#分支` 就装仓库默认分支）
-- 中文分支名已实测可被 pnpm/git 正常解析（`pnpm add github:RCC123555/DSH-plugin#五金报价` → `hardware-quote-dsh-plugin 3.0.1`）；若某台机器或工具对非 ASCII ref 不友好，把分支改成英文名（如 `hardware-quote`）即可，仓库内文件不用动。
+- 中文分支名已实测可被 pnpm/git 正常解析（`pnpm add github:RCC123555/DSH-plugin#五金报价` → `hardware-quote-dsh-plugin 3.5.0`）；若某台机器或工具对非 ASCII ref 不友好，把分支改成英文名（如 `hardware-quote`）即可，仓库内文件不用动。
 - 新增插件（干净起点，不带别人的文件）：
 
 ```
@@ -84,7 +84,7 @@ git add -A && git commit -m "feat: 新插件名 初始提交"
 git push -u origin "新插件名"
 ```
 
-- tag 带插件前缀，避免跨分支撞名：`五金报价-v3.4.0`、`新插件名-v1.0.0`
+- tag 带插件前缀，避免跨分支撞名：`五金报价-v3.5.0`（当前版本）、`新插件名-v1.0.0`
 - 好处：每个分支都满足「仓库根即包根」，`github:` spec 不需要 `#path:/子目录`，桌面端插件管理器能直接装。
 
 ## 怎么用
