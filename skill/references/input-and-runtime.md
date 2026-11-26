@@ -117,7 +117,7 @@
 
 ### hwq_quote
 
-传入同一份报价 JSON，可加 `outputDir`（默认当前目录 `output/`）、`workDir`、`imagePath`；缺价草稿须显式传 `allowDraft:true`（仅 `missing_price` 阻塞可用）。流程为核算 → 生成工作簿计划 → 内置 Python 生成两工作表 Excel，返回 `output`（产物路径）、`sheets`（两工作表及行列范围）与 `checks`：
+传入同一份报价 JSON，可加 `outputDir`（默认当前目录 `output/`）、`workDir`、`imagePath`；缺价草稿须显式传 `allowDraft:true`（仅 `missing_price` 阻塞可用）。流程为核算 → 生成工作簿计划 → 内置 Python 生成三工作表 Excel，返回 `output`（产物路径）、`sheets`（三张表及行列范围）与 `checks`：
 
 - `formulaErrors`：回读扫描到的 `#REF!` 等公式错误，应为空。
 - `rowMap`：BOM 行号映射；`weights`、`totals`：导出时实际使用的重量与合计，应与 `hwq_calculate` 一致。

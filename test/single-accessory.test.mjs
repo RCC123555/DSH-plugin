@@ -21,7 +21,7 @@ test('只有 1 条配件的产品也能导出（模板保留行整行留空，�
     assert.ok(result.output.endsWith('.xlsx'));
     const stat = await fs.stat(result.output);
     assert.ok(stat.size > 10000, '导出的工作簿不应是空壳');
-    assert.deepEqual(result.sheets.map(sheet => sheet.name), ['报价BOM', '报价底稿']);
+    assert.deepEqual(result.sheets.map(sheet => sheet.name), ['对内报价单', '报价BOM', '报价底稿']);
     // 只有 1 条配件时不需要扩行：配件行仍是模板的 14/15 两行
     assert.equal(result.checks.rowMap.accessoryStart, 14);
     assert.equal(result.checks.rowMap.accessorySubtotal, 16);

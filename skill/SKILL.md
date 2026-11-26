@@ -1,6 +1,6 @@
 # 五金产品报价
 
-根据产品图片、产品/外箱尺寸、组装净重或含毛重，识别配件、查参考单价，按固定规则输出「报价BOM + 报价底稿」Excel。识图、查价和有依据的估算由你完成；算术、公式与导出由 `hwq_*` 工具完成。
+根据产品图片、产品/外箱尺寸、组装净重或含毛重，识别配件、查参考单价，按固定规则输出「对内报价单 + 报价BOM + 报价底稿」三表 Excel（首页只留四列、默认选中）。识图、查价和有依据的估算由你完成；算术、公式与导出由 `hwq_*` 工具完成。
 
 **一次报多个产品时（同一客户/同一张询价表），交付一个工作簿：每款一张分表 `01_产品…`，前面加 `00_汇总` 与 `00_口径说明`，用 `hwq_quote_batch` 生成；不要逐款各出一个文件。** 单产品才用 `hwq_quote`。
 
@@ -21,7 +21,7 @@
 1. **读规则、备输入**：读 `references/quotation-rules.md`。收集图片、尺寸（cm/mm/m）、净重或毛重、订单量（默认 500）、每箱件数、喷涂与包装；列 BOM 与配件估重，记入 `assumptions`。尺寸单位不明必须询问，不能把 mm 当 cm。
 2. **查价**：读 `references/1688-browser-workflow.md`。顺序固定：先让 `hwq_1688_search`/`hwq_1688_offer` 自动查价格记忆（pull GitHub `price-memory` 分支）→ 命中且上次抓取在 **180 天（6 个月）** 内直接用，返回 `fromMemory:true`；超过 180 天或 `refresh:true` 必须重新查并覆盖记忆；记忆里没有才走 1688 搜索/详情。插件 Chrome 正常查价全程后台、不抢前台；命中登录墙/验证码时会**立即**把窗口置前、截图并返回 `userActionRequired`（同时写 `challenge.json`）——把「需要你处理：…」原样转告用户，请其在该窗口扫码/过验证码；用户完成后重新执行同一个查询，成功后工具会自动收回后台。用户显式 `hwq_1688_login action:"open"` 总是置前，`show`/`hide` 可手动调出/收回。查价时 `hwq_1688_search`（关键词或以图搜款）→ `hwq_1688_offer` 读详情所选 SKU 的普通批发价；同规格 3–5 个候选用 `hwq_1688_average` 归一取均价。每条价必须带真实证据；记忆命中的 `queriedAt`/`capturedAt` 保留原始日期，不得改写成今天。`hwq_1688_search`/`hwq_1688_offer` 默认就会查记忆，**不要再传 `useMemory`**；只有确实要最新价才传 `refresh:true`（是否写入记忆不受 `refresh` 影响）。
 3. **核算**：把报价 JSON 交给 `hwq_calculate`，看 `ready`、`blockingIssues`、`draftOnly`、`weights`、`costs`、`totals`。仅缺价阻塞才可草稿（`draftOnly`，导出时显式传 `allowDraft:true`）；重量矛盾、尺寸缺失、包装不完整必须先修，不得靠草稿绕过。
-4. **导出**：单产品用 `hwq_quote`，多产品用 `hwq_quote_batch`（`items` 逐款给输入与分表简称 `name`，`label` 填批次名）。返回 `output`、`sheets` 与 `checks`（批量另有 `verification`）。用 `checks` 核对：`formulaErrors` 为空、工作表齐全、重量与合计与第 3 步一致、链接与图片已写入，并与底稿「脚本复算（只读校验）」区块逐项对照；批量交付还要确认 `00_汇总` 的 C/P/M/U/T/Q 与各分表一致、合计行正确。
+4. **导出**：单产品用 `hwq_quote`，多产品用 `hwq_quote_batch`（`items` 逐款给输入与分表简称 `name`，`label` 填批次名）。返回 `output`、`sheets` 与 `checks`（批量另有 `verification`）。用 `checks` 核对：`formulaErrors` 为空、三张工作表齐全（对内报价单/报价BOM/报价底稿）、`checks.landing.total` 与 BOM 含税报价一致、重量与合计与第 3 步一致、链接与图片已写入，并与底稿「脚本复算（只读校验）」区块逐项对照；批量交付还要确认 `00_汇总` 的 C/P/M/U/T/Q 与各分表一致、合计行正确。
 5. **交付**：`checks`/`verification` 通过后交付 `output`；多产品只交付合并后的那一个文件（分表顺序与 `items` 一致，用产品简称命名分表）。复核通过即清理本次中间文件，历史正式报价不覆盖、不删。
 
 ## 铁律

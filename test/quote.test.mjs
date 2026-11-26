@@ -155,7 +155,7 @@ test('layoutFor 复现模板的行号规则', () => {
   assert.equal(five.footer, 43);
 });
 
-test('ready 样例：端到端生成，两表结构/公式/打印/超链接/复算区块齐备', async () => {
+test('ready 样例：端到端生成，三表结构/公式/打印/超链接/复算区块齐备', async () => {
   const ctx = workspace('ready');
   const input = sampleInput();
   input.allowDraft = true;
@@ -182,11 +182,13 @@ test('ready 样例：端到端生成，两表结构/公式/打印/超链接/复�
     assert.deepEqual(
       res.sheets.map(s => ({ name: s.name, lastRow: s.lastRow, lastColumn: s.lastColumn })),
       [
+        { name: '对内报价单', lastRow: res.sheets[0].lastRow, lastColumn: 4 },
         { name: '报价BOM', lastRow: layout.footer, lastColumn: 9 },
-        { name: '报价底稿', lastRow: res.sheets[1].lastRow, lastColumn: 9 },
+        { name: '报价底稿', lastRow: res.sheets[2].lastRow, lastColumn: 9 },
       ],
     );
-    assert.ok(res.sheets[1].lastRow > 70, '底稿行数异常');
+    assert.ok(res.sheets[0].lastRow > 10, '首页行数异常');
+    assert.ok(res.sheets[2].lastRow > 70, '底稿行数异常');
 
     assert.deepEqual(res.checks.formulaErrors, [], `公式错误：${res.checks.formulaErrors}`);
     assert.deepEqual(res.checks.structuralErrors, []);
@@ -218,7 +220,7 @@ test('ready 样例：端到端生成，两表结构/公式/打印/超链接/复�
 
     const dump = dumpWorkbook(res.output, addresses);
     assert.equal(dump.calcFullCalcOnLoad, true, '缺少 calcPr fullCalcOnLoad=1');
-    assert.deepEqual(dump.sheetNames, ['报价BOM', '报价底稿']);
+    assert.deepEqual(dump.sheetNames, ['对内报价单', '报价BOM', '报价底稿']);
 
     const front = dump.sheets['报价BOM'];
     const bottom = dump.sheets['报价底稿'];
@@ -325,8 +327,8 @@ test('三条配件：自动扩行并保持公式与合并区域正确', async ()
     assert.equal(res.checks.rowMap.beforeTax, 38);
     assert.equal(res.checks.rowMap.footer, 41);
     assert.deepEqual(res.checks.formulaErrors, []);
-    assert.equal(res.sheets[0].lastRow, 41);
-    assert.equal(res.sheets[0].maxRow === undefined, true);
+    assert.equal(res.sheets[1].lastRow, 41);
+    assert.equal(res.sheets[1].maxRow === undefined, true);
 
     const addresses = [
       'B14', 'B15', 'B16', 'H16', `H${layout.accessorySubtotal}`,

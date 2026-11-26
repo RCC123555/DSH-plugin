@@ -55,7 +55,7 @@ export async function previewSlices? // 可选
 ```
 流程：`calculate(input)` → 生成 workbook plan JSON（写到 workDir）→ 用 `pythonPath`（默认上面的绝对路径，可用 `DSH_HWQ_PYTHON` 覆盖）执行 `python/build_workbook.py --plan <plan.json>` → 返回产物路径。
 `plan` 结构自定，但 `build_workbook.py` 必须能从任意 cwd 用 `python build_workbook.py --plan X` 跑通（脚本内部用 `Path(__file__).parent` 定位资源）。
-Excel 输出要求（旧版行为，必须保留）：两工作表「报价BOM」「报价底稿」；BOM 沿用 `skill/assets/对外报价BOM表.xlsx` 的原样式、至少 2 条配件行、按配件条数扩行、加未税报价行；BOM 用公式引用底稿单元格；嵌入产品第一张图（若有）；底稿 A:I 列含公共参数、逐条 1688 证据（详情 URL 可点击原生超链接）、均价记录、估算依据、以及**新增**"脚本复算（只读校验）"区块列出 JS 计算的成本/利润/未税/含税/净利率静态值（用于无 LibreOffice 环境核对公式）；打印设置：BOM A4 纵向、fitToWidth=1 fitToHeight=1，底稿 A3 横向、fitToWidth=1 fitToHeight=0（不承诺严格两张纸）；`calcPr fullCalcOnLoad=1`。
+Excel 输出要求（旧版行为，必须保留）：三工作表、表序固定「对内报价单」「报价BOM」「报价底稿」且首页默认选中；BOM 沿用 `skill/assets/对外报价BOM表.xlsx` 的原样式、至少 2 条配件行、按配件条数扩行、加未税报价行；BOM 用公式引用底稿单元格；嵌入产品第一张图（若有）；底稿 A:I 列含公共参数、逐条 1688 证据（详情 URL 可点击原生超链接）、均价记录、估算依据、以及**新增**"脚本复算（只读校验）"区块列出 JS 计算的成本/利润/未税/含税/净利率静态值（用于无 LibreOffice 环境核对公式）；打印设置：BOM A4 纵向、fitToWidth=1 fitToHeight=1，底稿 A3 横向、fitToWidth=1 fitToHeight=0（不承诺严格两张纸）；`calcPr fullCalcOnLoad=1`。
 `checks` 至少返回：`formulaErrors`（openpyxl 读回时扫描到 `#REF!` 等）、`rowMap`、`weights`、`totals`、`links`、`imageEmbedded`。
 
 ### `lib/cdp.mjs` + `lib/ali1688.mjs`（C）

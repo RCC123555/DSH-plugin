@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-"""把多份「两表报价」工作簿合并成一个交付工作簿。
+"""把多份「三表报价」工作簿合并成一个交付工作簿。
 
 合并规则（与历史交付一致）：
 - 每个产品一张工作表，工作表名形如 ``01_产品简称``；
-- 表内上半部是「报价BOM」（模板原样，行号不变），下半部接「报价底稿」，
-  底稿第 1 行落在 BOM 页脚之后第 4 行；
-- 两表的列宽取逐列最大值（保证两段内容都能读）；
+- 表内自上而下依次是「对内报价单」「报价BOM」「报价底稿」三块，块间空 3 行；
+  对内报价单从第 1 行起，报价BOM 首页脚之后第 4 行，报价底稿再往后第 4 行；
+- 三表的列宽取逐列最大值（保证各段内容都能读）；
 - 公式、合并单元格、超链接、图片、行高、数字格式全部随内容搬运，
-  公式里的跨表引用改写成本表引用（底稿行号整体下移）。
+  公式里的跨表引用改写成本表引用（按块行偏移整体下移）。
 """
 from __future__ import annotations
 
@@ -27,8 +27,10 @@ from openpyxl.worksheet.hyperlink import Hyperlink
 
 FRONT = '报价BOM'
 BOTTOM = '报价底稿'
+LANDING = '对内报价单'
 FRONT_COLS = 12             # 报价BOM 右侧 L 列有净利率等公式，底稿会引用
-GAP = 4                     # BOM 页脚与底稿标题之间空 3 行
+LANDING_COLS = 4            # 对内报价单只有 成本明细/数量/单价/金额 四列
+GAP = 4                     # 相邻两块之间空 3 行
 DEFAULT_COL_WIDTH = 8.43
 
 # 单元格引用（可带表名前缀）与区域
@@ -52,11 +54,11 @@ def _shift_ref(ref: str, delta: int) -> str:
     return ':'.join(out)
 
 
-def rewrite_formula(formula: str, *, block_delta: int, bottom_delta: int) -> str:
+def rewrite_formula(formula: str, *, block_delta: int, deltas: dict[str, int]) -> str:
     """把公式里的引用改写为本表引用。
 
-    block_delta  : 当前区块自身行偏移（BOM=0，底稿=bottom_delta）。
-    bottom_delta : 底稿第 1 行在目标表里的行号 - 1。
+    block_delta : 当前区块自身行偏移（对内报价单=0，BOM=front_start-1，底稿=bottom_start-1）。
+    deltas      : {源表名: 该块在目标表里的行偏移}，用于改写带表名的跨表引用。
     """
     if not isinstance(formula, str) or not formula.startswith('='):
         return formula
@@ -68,10 +70,8 @@ def rewrite_formula(formula: str, *, block_delta: int, bottom_delta: int) -> str
             sheet = match.group('sheet')
             if sheet:
                 name = sheet.strip("'")
-                if name == FRONT:
-                    delta = 0
-                elif name == BOTTOM:
-                    delta = bottom_delta
+                if name in deltas:
+                    delta = deltas[name]
                 else:
                     return match.group(0)
             else:
@@ -93,28 +93,26 @@ def _copy_style(src, dst) -> None:
     dst.alignment = copy.copy(src.alignment)
 
 
-def _rewrite_location(location: str | None, delta: int) -> str | None:
+def _rewrite_location(location: str | None, deltas: dict[str, int]) -> str | None:
     if not location:
         return location
     text = location
     if '!' in text:
         sheet, _, ref = text.rpartition('!')
         name = sheet.strip("'")
-        if name == BOTTOM:
-            return _shift_ref(ref, delta)
-        if name == FRONT:
-            return _shift_ref(ref, 0)
+        if name in deltas:
+            return _shift_ref(ref, deltas[name])
         return text
-    return _shift_ref(text, delta)
+    return _shift_ref(text, deltas.get(BOTTOM, 0))
 
 
-def _copy_block(src_ws, dst_ws, *, rows, cols, row_offset, block_delta, bottom_delta, images):
+def _copy_block(src_ws, dst_ws, *, rows, cols, row_offset, block_delta, deltas, images):
     for r in range(1, rows + 1):
         for c in range(1, cols + 1):
             s = src_ws.cell(r, c)
             d = dst_ws.cell(r + row_offset, c)
             if isinstance(s.value, str) and s.value.startswith('='):
-                d.value = rewrite_formula(s.value, block_delta=block_delta, bottom_delta=bottom_delta)
+                d.value = rewrite_formula(s.value, block_delta=block_delta, deltas=deltas)
             elif s.value is not None:
                 d.value = s.value
             _copy_style(s, d)
@@ -123,7 +121,7 @@ def _copy_block(src_ws, dst_ws, *, rows, cols, row_offset, block_delta, bottom_d
                 d.hyperlink = Hyperlink(
                     ref=d.coordinate,
                     target=link.target,
-                    location=_rewrite_location(link.location, bottom_delta) if link.location else None,
+                    location=_rewrite_location(link.location, deltas) if link.location else None,
                     tooltip=link.tooltip,
                     display=link.display,
                 )
@@ -178,33 +176,53 @@ def _footer_row(ws) -> int:
 def build_product_sheet(target, source_path: Path, title: str):
     src = openpyxl.load_workbook(source_path)
     front, bottom = src[FRONT], src[BOTTOM]
+    has_landing = LANDING in src.sheetnames
+    landing = src[LANDING] if has_landing else None
+
+    landing_rows = landing.max_row if landing is not None else 0
     front_last = _footer_row(front)
     bottom_last = bottom.max_row
-    bottom_start = front_last + GAP
-    bottom_delta = bottom_start - 1
+
+    landing_start = 1
+    front_start = (landing_rows + GAP) if has_landing else 1
+    bottom_start = front_start + front_last - 1 + GAP
+    deltas = {FRONT: front_start - 1, BOTTOM: bottom_start - 1}
+    if has_landing:
+        deltas[LANDING] = landing_start - 1
 
     sheet = target.create_sheet(title=title)
     sheet.sheet_view.showGridLines = False
 
-    _copy_block(front, sheet, rows=front_last, cols=FRONT_COLS, row_offset=0,
-                block_delta=0, bottom_delta=bottom_delta,
+    if landing is not None:
+        _copy_block(landing, sheet, rows=landing_rows, cols=LANDING_COLS, row_offset=0,
+                    block_delta=deltas[LANDING], deltas=deltas,
+                    images=list(getattr(landing, '_images', []) or []))
+    _copy_block(front, sheet, rows=front_last, cols=FRONT_COLS, row_offset=deltas[FRONT],
+                block_delta=deltas[FRONT], deltas=deltas,
                 images=list(getattr(front, '_images', []) or []))
-    _copy_block(bottom, sheet, rows=bottom_last, cols=FRONT_COLS, row_offset=bottom_delta,
-                block_delta=bottom_delta, bottom_delta=bottom_delta, images=[])
-    _copy_merges(front, sheet, rows=front_last, row_offset=0)
-    _copy_merges(bottom, sheet, rows=bottom_last, row_offset=bottom_delta)
+    _copy_block(bottom, sheet, rows=bottom_last, cols=FRONT_COLS, row_offset=deltas[BOTTOM],
+                block_delta=deltas[BOTTOM], deltas=deltas, images=[])
 
-    for key, width in _max_widths(front, bottom).items():
+    if landing is not None:
+        _copy_merges(landing, sheet, rows=landing_rows, row_offset=deltas[LANDING])
+    _copy_merges(front, sheet, rows=front_last, row_offset=deltas[FRONT])
+    _copy_merges(bottom, sheet, rows=bottom_last, row_offset=deltas[BOTTOM])
+
+    width_sources = [front, bottom] + ([landing] if landing is not None else [])
+    for key, width in _max_widths(*width_sources).items():
         sheet.column_dimensions[key].width = width
 
-    last_row = bottom_delta + bottom_last
+    last_row = deltas[BOTTOM] + bottom_last
     sheet.print_area = 'A1:I%d' % last_row
     sheet.sheet_properties.pageSetUpPr = copy.copy(front.sheet_properties.pageSetUpPr)
     sheet.page_setup.orientation = 'landscape'
     sheet.page_setup.fitToWidth = 1
     sheet.page_setup.fitToHeight = 0
-    return {'title': title, 'frontRows': front_last, 'bottomRows': bottom_last,
-            'bottomStart': bottom_start, 'lastRow': last_row}
+    return {'title': title,
+            'landingRows': landing_rows, 'landingStart': landing_start,
+            'frontRows': front_last, 'frontStart': front_start,
+            'bottomRows': bottom_last, 'bottomStart': bottom_start,
+            'lastRow': last_row}
 
 
 def write_summary(workbook, summary: dict):

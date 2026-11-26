@@ -1,3 +1,24 @@
+# 3.5.0
+
+## 对内报价单首页（三表交付）
+
+- **表序与选中**：`build()` 先用模板生成「报价BOM」，再追加「报价底稿」，最后 `create_sheet(LANDING, 0)` 把「对内报价单」插到最前，`workbook.active = 0` 且逐表 `tabSelected = (index == 0)`；`xlsx` 关系里首页排第一，打开即首页。
+- **首页版式**（`write_landing`）：A/B/C/D 四列 = 成本明细/数量/单价/金额，列宽 34/16/14/18；R1 货号 + SKU（B1:C1 合并，15pt）+「含税合计（元/件）」；R2 产品名称 + `=D{total}`（20pt 红）；R3 表头；明细 R4 起。数量列数字格式 `0.###"kg|个|套|箱|件|项"`，单价 `=IF(B>0,D/B,0)` 格式 `0.00`，金额 `=SUM`/单元格引用。合计区：成本合计 `=SUM(D4:D{cost-1})`、管理费 `='报价BOM'!G{management}`、利润 `='报价BOM'!G{profit}`、税金（C=`='报价底稿'!B9` 格式 0%，D=`=SUM(...)*C`）、含税合计 `=IFERROR(SUM(...),"待核价")`。打印：`A1:D{footer}`、A4 横向、`fitToWidth=1`、`fitToHeight=1`、水平居中、页脚提示「价格依据见报价底稿」、`freeze_panes='A4'`。
+- **行序**：材料（`=SUM('报价BOM'!E8:E9)` kg，`='报价BOM'!H12`）→ 配件（紧固件合并行优先）→ 开料、焊接及打磨（BOM 加工行）→ 喷粉（`needsCoating === false` 时省略）→ 纸箱（`=1/'报价底稿'!B13` 箱）→ 护角 → 说明书、贴标（`=H26+H27`）→ 保护包材逐条（底稿 protection 区块）→ 包装人工 → 验货、装柜。
+- **合并规则**（`landing_label`/`LANDING_ALIASES`/`LANDING_FASTENER`）：≥2 条名称命中 `螺丝|螺母|螺钉|螺栓|垫圈|垫片|弹垫|平垫|紧固` → 一行「紧固件（螺丝、螺母）」1 套，金额 `=SUM(H14,...)`，其余规格明细只在底稿；模板同义行按别名归并（合页/铰链/荷叶、锁扣/锁具/锁体/门锁、脚垫/脚套/脚粒/脚塞、泡沫/EPE/epe/气泡膜/珍珠棉…）；模板行（`LANDING_TEMPLATE_LABELS`）单价缺失时按模板口径合并，其余按「同名同单位同单价」合并，数量/金额 `SUM`。
+- **JS 侧**：`SHEET_LANDING` 导出；`sheets` 三元素；读回后强校验 `landing.total === totals.afterTax`（1e-6），草稿必须是字符串「待核价」；`checks.landing` 汇总 `total/afterTax/matchesBom/costRow/costAmount/taxRate/fixedFees/fastenerRow/rows`。
+
+## 合并与校验三块化
+
+- `merge_quotes.rewrite_formula(formula, *, block_delta, deltas)`：`deltas` 为 `{源表名: 行偏移}`，跨表引用按块改写，替代原来的 `bottom_delta` 双参数。
+- `build_product_sheet`：依次复制 对内报价单（4 列）→ 报价BOM（12 列）→ 报价底稿（12 列），块间空 3 行，返回 `landingRows/frontStart/landingStart/bottomStart`；列宽取三表逐列最大。
+- `verify_merge.py` 对三块逐格比对（pairs 数组扩为 `[sheet, source, landingRows, frontRows, bottomRows, landingStart, frontStart, bottomStart]`），`lib/batch.mjs` 生成处同步；`index.mjs` 分表行数显示改为「对内x+BOMx+底稿x」。
+
+## 测试
+
+- 新增 `test/landing.test.mjs` 6 例：三表顺序与默认选中/四列/打印；无配件产品四项固定费用 12.10 只计一次；多规格螺丝+螺母+垫片+门锁（紧固件紧跟材料、按套合价、门锁一行、明细覆盖税与合计）；多件装纸箱按件拆分；改铁单价首页与 BOM 同步；缺价草稿显示「待核价」。
+- 原两表断言更新为三表（`test/quote.test.mjs`、`test/single-accessory.test.mjs`）；全量 159 例（153 pass / 0 fail / 6 skip）。
+
 # 3.4.0
 
 ## 价格记忆「写了但没生效」的根因修复

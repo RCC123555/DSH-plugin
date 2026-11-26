@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""hardware-quote · 生成两工作表报价工作簿（「报价BOM」+「报价底稿」）。
+"""hardware-quote · 生成三工作表报价工作簿（「对内报价单」+「报价BOM」+「报价底稿」）。
 
 用法（可从任意 cwd 调用，资源路径由 __file__ 定位）：
     python build_workbook.py --plan plan.json [--out out.xlsx] [--report report.json]
@@ -33,7 +33,7 @@ from openpyxl import load_workbook
 from openpyxl.drawing.image import Image as XLImage
 from openpyxl.drawing.spreadsheet_drawing import AnchorMarker, OneCellAnchor
 from openpyxl.drawing.xdr import XDRPositiveSize2D
-from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import column_index_from_string, get_column_letter
 from openpyxl.utils.units import pixels_to_EMU
 from openpyxl.workbook.properties import CalcProperties
@@ -1468,12 +1468,327 @@ def write_front(ws, plan, sources, protection_total, area_row):
     return image_embedded
 
 
+# ────────────────────────────────────────────────────────────── 对内报价单（首页）
+LANDING = '对内报价单'
+LANDING_WIDTHS = {'A': 34, 'B': 16, 'C': 14, 'D': 18}
+LANDING_FONT = '宋体'
+# 模板已有的配件行标签：同一标签的多条物料合并为一行（门锁只出现一次等）。
+LANDING_TEMPLATE_LABELS = ('套管', '荷叶', '门锁', '护片', '密封袋子', '珍珠棉', '脚塞', '篷布')
+LANDING_ALIASES = (
+    ('荷叶', ('合页', '铰链', '荷叶')),
+    ('门锁', ('门锁', '锁扣', '锁具', '锁体')),
+    ('套管', ('套管', '套筒')),
+    ('护片', ('护片',)),
+    ('密封袋子', ('密封袋', '胶袋', '塑料袋')),
+    ('珍珠棉', ('珍珠棉', '泡沫', 'EPE', 'epe', '气泡膜')),
+    ('脚塞', ('脚塞', '脚垫', '脚套', '脚粒')),
+    ('篷布', ('篷布', '雨布', '防水布')),
+)
+LANDING_FASTENER = re.compile(r'螺丝|螺母|螺钉|螺栓|垫圈|垫片|弹垫|平垫|紧固')
+LANDING_UNITS = {'PCS': '个', 'PCS.': '个', 'SET': '套', 'SETS': '套', 'KG': 'kg', 'M': '米', 'CM': 'cm',
+                 'pc': '个', 'pcs': '个', 'set': '套', 'sets': '套', 'kg': 'kg', 'm': '米'}
+
+
+def landing_label(name):
+    """把物料名称归并到模板行标签（合页→荷叶、锁扣→门锁…），无匹配时保留原名。"""
+    label = str(name or '').strip()
+    if not label:
+        return '其他'
+    for target, keys in LANDING_ALIASES:
+        if any(key in label for key in keys):
+            return target
+    return label
+
+
+def landing_unit(item):
+    unit = str((item or {}).get('unit') or '个')
+    return LANDING_UNITS.get(unit, unit)
+
+
+def write_landing(ws, plan):
+    """首页「对内报价单」：四列落地页，金额全部公式引用「报价BOM」「报价底稿」。
+
+    行序按模板：材料→配件（含紧固件合并行）→开料焊接打磨→喷粉→纸箱→护角→
+    说明书贴标→保护包材→包装人工→验货装柜→成本合计→管理费→利润→税金→含税合计。
+    数量列带单位（kg/个/套/箱/项），单价列＝金额÷数量（不加 ROUND，只在显示上两位小数）。
+    """
+    calc = plan['calc']
+    layout = plan['layout']
+    bottom_layout = plan.get('bottomLayout') or {}
+    product = calc['product']
+    accessories = list(calc.get('accessories') or [])
+    protection = list(calc.get('protection') or [])
+
+    def bom(ref):
+        return "'%s'!%s" % (FRONT, ref)
+
+    def bot(ref):
+        return "'%s'!%s" % (BOTTOM, ref)
+
+    # 包装材料区块行号：模板 25~33 行，扩行只影响 15/37 及以后，这些行号稳定。
+    p_start = layout['packagingStart']
+    bar_row = p_start + 1                    # 条形码/贴标 1×1.5
+    manual_row = p_start + 2                 # 说明书 1×2.5
+    corner_row = p_start + 3                 # 护角 8×0.2
+    cabinet_row = layout['protection'] + 1   # 装柜人工 1×1.5
+    carton_row = layout['carton']            # 纸箱
+    labor_row = carton_row + 1               # 包装人工 1×5
+
+    rows = []
+
+    def add(label, qty, unit, amount, tag=None):
+        rows.append({'label': label, 'qty': qty, 'unit': unit, 'amount': amount, 'tag': tag})
+
+    # ---- 材料（铁+木）----
+    add('材料', '=SUM(%s)' % bom('E8:E9'), 'kg', '=%s' % bom('H12'), tag='material')
+
+    # ---- 配件：紧固件合并行 + 模板同义行合并 ----
+    fast_indices = [i for i, item in enumerate(accessories)
+                    if LANDING_FASTENER.search(str(item.get('name') or ''))]
+    groups = []
+    if len(fast_indices) >= 2:
+        placed = False
+        for index, item in enumerate(accessories):
+            if index in fast_indices:
+                if not placed:
+                    groups.append({'label': '紧固件（螺丝、螺母）', 'unit': '套',
+                                   'indices': list(fast_indices), 'kind': 'fastener'})
+                    placed = True
+                continue
+            groups.append({'label': landing_label(item.get('name')), 'unit': landing_unit(item),
+                           'indices': [index], 'kind': 'single'})
+    else:
+        for index, item in enumerate(accessories):
+            groups.append({'label': landing_label(item.get('name')), 'unit': landing_unit(item),
+                           'indices': [index], 'kind': 'single'})
+
+    merged, keyed = [], {}
+    for group in groups:
+        if group['kind'] == 'fastener':
+            merged.append(group)
+            continue
+        item = accessories[group['indices'][0]]
+        price = item.get('unitPrice')
+        price_key = ('%.6f' % price) if isinstance(price, (int, float)) else 'none'
+        if group['label'] in LANDING_TEMPLATE_LABELS:
+            price_key = 'template'   # 模板行只填单价、按实际用量计价，允许不同单价合成一行
+        key = (group['label'], group['unit'], price_key)
+        if key in keyed:
+            keyed[key]['indices'].extend(group['indices'])
+        else:
+            keyed[key] = group
+            merged.append(group)
+
+    # 行序：紧固件合并行 → 模板里没有的配件（紧随材料）→ 模板同义行按模板顺序。
+    template_order = {label: index for index, label in enumerate(LANDING_TEMPLATE_LABELS)}
+
+    def landing_order(group):
+        if group['kind'] == 'fastener':
+            return (0, 0)
+        if group['label'] in template_order:
+            return (2, template_order[group['label']])
+        return (1, 0)
+
+    merged.sort(key=landing_order)
+
+    fastener_row = None
+    for group in merged:
+        refs = [bom('H%d' % (14 + index)) for index in group['indices']]
+        qty_refs = [bom('D%d' % (14 + index)) for index in group['indices']]
+        if group['kind'] == 'fastener':
+            add(group['label'], 1, group['unit'], '=SUM(%s)' % ','.join(refs), tag='fastener')
+            fastener_row = len(rows) + 3
+        elif len(refs) == 1:
+            add(group['label'], '=%s' % qty_refs[0], group['unit'], '=%s' % refs[0], tag='accessory')
+        else:
+            add(group['label'], '=SUM(%s)' % ','.join(qty_refs), group['unit'],
+                '=SUM(%s)' % ','.join(refs), tag='accessory')
+
+    # ---- 加工费：开料、焊接及打磨 合并一行；喷粉单独一行 ----
+    pr = layout['processingStart']
+    add('开料、焊接及打磨', '=%s' % bom('D%d' % pr), 'kg', '=%s' % bom('H%d' % pr), tag='processing')
+    if (calc.get('processing') or {}).get('needsCoating') is not False:
+        co = layout['coating']
+        add('喷粉', '=%s' % bom('D%d' % co), 'kg', '=%s' % bom('H%d' % co), tag='coating')
+
+    # ---- 包装：纸箱拆到每件；四项固定费用每次都给 ----
+    add('纸箱', '=1/%s' % bot('B13'), '箱', '=%s' % bom('H%d' % carton_row), tag='carton')
+    add('护角', '=%s' % bom('D%d' % corner_row), '个', '=%s' % bom('H%d' % corner_row), tag='corner')
+    add('说明书、贴标', 1, '套',
+        '=%s+%s' % (bom('H%d' % bar_row), bom('H%d' % manual_row)), tag='manual')
+    protection_start = bottom_layout.get('protectionStart')
+    for index, item in enumerate(protection):
+        if not protection_start:
+            break
+        prow = protection_start + index
+        unit_name = {'piece': landing_unit(item), 'volume': 'm³', 'area': 'm²',
+                     'length': 'm'}.get(item.get('pricing', 'piece'), '个')
+        add(landing_label(item.get('name')),
+            '=IF(ISNUMBER(%s),%s/%s,0)' % (bot('G%d' % prow), bot('H%d' % prow), bot('G%d' % prow)),
+            unit_name, '=%s' % bot('H%d' % prow), tag='protection')
+    add('包装人工', '=%s' % bom('D%d' % labor_row), '件', '=%s' % bom('H%d' % labor_row), tag='labor')
+    add('验货、装柜', '=%s' % bom('D%d' % cabinet_row), '件', '=%s' % bom('H%d' % cabinet_row), tag='inspection')
+
+    detail_start = 4
+    cost_row = detail_start + len(rows)
+    management_row = cost_row + 1
+    profit_row = cost_row + 2
+    tax_row = cost_row + 3
+    total_row = cost_row + 4
+    # 紧固件行号在 add 时按 len(rows)+3 预估（rows 从第 4 行开始写）。
+
+    # ---------- 版式 ----------
+    ws.sheet_view.showGridLines = False
+    for col, width in LANDING_WIDTHS.items():
+        ws.column_dimensions[col].width = width
+
+    thin = Side(style='thin', color='FFB7C0CA')
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    medium = Side(style='medium', color='FF164E63')
+    font = Font(name=LANDING_FONT, size=11, color='FF111827')
+    font_bold = Font(name=LANDING_FONT, size=11, bold=True, color='FF111827')
+    font_label = Font(name=LANDING_FONT, size=9, color='FF6B7280')
+    font_header = Font(name=LANDING_FONT, size=11, bold=True, color='FF164E63')
+    font_sku = Font(name=LANDING_FONT, size=15, bold=True, color='FF111827')
+    font_total = Font(name=LANDING_FONT, size=20, bold=True, color='FFC00000')
+    left = Alignment(horizontal='left', vertical='center', indent=1)
+    right = Alignment(horizontal='right', vertical='center')
+    center = Alignment(horizontal='center', vertical='center', wrap_text=True)
+
+    # ---------- 顶部：货号 / 含税合计 ----------
+    ws['A1'].value = '货号'
+    ws['A1'].font = font_label
+    ws['A1'].alignment = left
+    merge(ws, 'B1:C1')
+    ws['B1'].value = str(product.get('sku') or '')
+    ws['B1'].font = font_sku
+    ws['B1'].alignment = Alignment(horizontal='left', vertical='center', indent=1, shrink_to_fit=True)
+    ws['D1'].value = '含税合计（元/件）'
+    ws['D1'].font = font_label
+    ws['D1'].alignment = Alignment(horizontal='right', vertical='bottom', indent=1)
+    ws.row_dimensions[1].height = 32
+
+    ws['A2'].value = '产品名称'
+    ws['A2'].font = font_label
+    ws['A2'].alignment = left
+    merge(ws, 'B2:C2')
+    ws['B2'].value = str(product.get('name') or '')
+    ws['B2'].font = font
+    ws['B2'].alignment = Alignment(horizontal='left', vertical='center', indent=1, shrink_to_fit=True)
+    ws['D2'].value = '=D%d' % total_row
+    ws['D2'].font = font_total
+    ws['D2'].alignment = right
+    numfmt(ws, 'D2', '0.00')
+    ws.row_dimensions[2].height = 38
+
+    for col, label in (('A', '成本明细'), ('B', '数量'), ('C', '单价'), ('D', '金额')):
+        ws['%s3' % col].value = label
+        ws['%s3' % col].font = font_header
+        ws['%s3' % col].fill = FILL_BAND
+        ws['%s3' % col].border = border
+        ws['%s3' % col].alignment = center
+    ws.row_dimensions[3].height = 30
+
+    # ---------- 明细行 ----------
+    for offset, row_def in enumerate(rows):
+        row = detail_start + offset
+        ws['A%d' % row].value = row_def['label']
+        ws['B%d' % row].value = row_def['qty']
+        ws['C%d' % row].value = '=IF(B%d>0,D%d/B%d,0)' % (row, row, row)
+        ws['D%d' % row].value = row_def['amount']
+        numfmt(ws, 'B%d' % row, '0.###"%s"' % (row_def['unit'] or '个'))
+        numfmt(ws, 'C%d:D%d' % (row, row), '0.00')
+        for col in 'ABCD':
+            cell = ws['%s%d' % (col, row)]
+            cell.font = font
+            cell.border = border
+            cell.alignment = left if col == 'A' else right
+        ws.row_dimensions[row].height = 26
+
+    # ---------- 成本合计 / 管理费 / 利润 / 税金 / 含税合计 ----------
+    for row, label in ((cost_row, '成本合计'), (management_row, '管理费'),
+                       (profit_row, '利润'), (tax_row, '税金'), (total_row, '含税合计（元/件）')):
+        # 税金行要保留 C 列税率，故只合并 A:B；其余行合并 A:C。
+        merge(ws, 'A%d:B%d' % (row, row) if row == tax_row else 'A%d:C%d' % (row, row))
+        ws['A%d' % row].value = label
+        ws['A%d' % row].font = font_bold if row >= cost_row else font
+        ws['A%d' % row].alignment = left
+        for col in 'ABCD':
+            cell = ws['%s%d' % (col, row)]
+            cell.border = border
+            if row in (cost_row, total_row):
+                cell.fill = FILL_BAND
+        ws.row_dimensions[row].height = 28
+
+    ws['D%d' % cost_row].value = '=SUM(D%d:D%d)' % (detail_start, cost_row - 1)
+    ws['D%d' % management_row].value = '=%s' % bom('G%d' % layout['management'])
+    ws['D%d' % profit_row].value = '=%s' % bom('G%d' % layout['profit'])
+    ws['C%d' % tax_row].value = '=%s' % bot('B9')
+    ws['D%d' % tax_row].value = '=SUM(D%d:D%d)*C%d' % (cost_row, profit_row, tax_row)
+    ws['D%d' % total_row].value = '=IFERROR(SUM(D%d:D%d),"待核价")' % (cost_row, tax_row)
+    numfmt(ws, 'D%d' % cost_row, '0.00')
+    numfmt(ws, 'D%d' % management_row, '0.00')
+    numfmt(ws, 'D%d' % profit_row, '0.00')
+    numfmt(ws, 'C%d' % tax_row, '0%')
+    numfmt(ws, 'D%d' % tax_row, '0.00')
+    numfmt(ws, 'D%d' % total_row, '0.00')
+    for row in (cost_row, management_row, profit_row, tax_row, total_row):
+        ws['D%d' % row].font = font_bold if row in (cost_row, total_row) else font
+        ws['D%d' % row].alignment = right
+        if row == total_row:
+            ws['D%d' % row].font = Font(name=LANDING_FONT, size=14, bold=True, color='FFC00000')
+    for col in 'ABCD':
+        ws['%s%d' % (col, total_row)].border = Border(left=thin, right=thin, bottom=thin, top=medium)
+    ws.row_dimensions[total_row].height = 34
+
+    footer_row = total_row + 2
+    merge(ws, 'A%d:D%d' % (footer_row, footer_row))
+    ws['A%d' % footer_row].value = ('价格依据、规格明细、档位与链接见「报价底稿」；'
+                                    '数量为每件产品用量，金额随底稿单价联动。')
+    ws['A%d' % footer_row].font = font_label
+    ws['A%d' % footer_row].alignment = Alignment(horizontal='left', vertical='center', wrap_text=True, indent=1)
+    ws.row_dimensions[footer_row].height = 30
+
+    ws.freeze_panes = 'A4'
+    ws.print_area = 'A1:D%d' % footer_row
+    ws.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
+    ws.page_setup.paperSize = 9
+    ws.page_setup.orientation = 'landscape'
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 1
+    ws.print_options.horizontalCentered = True
+    ws.page_margins.left = 0.4
+    ws.page_margins.right = 0.4
+    ws.page_margins.top = 0.5
+    ws.page_margins.bottom = 0.5
+
+    return {'lastRow': footer_row, 'headerRow': 3, 'detailStart': detail_start,
+            'costRow': cost_row, 'managementRow': management_row, 'profitRow': profit_row,
+            'taxRow': tax_row, 'totalRow': total_row, 'totalCell': 'D%d' % total_row,
+            'fixedFees': {'护角': 'D%d' % (detail_start + _find_row(rows, '护角')),
+                          '说明书、贴标': 'D%d' % (detail_start + _find_row(rows, '说明书、贴标')),
+                          '包装人工': 'D%d' % (detail_start + _find_row(rows, '包装人工')),
+                          '验货、装柜': 'D%d' % (detail_start + _find_row(rows, '验货、装柜'))},
+            'fastenerRow': fastener_row,
+            'rows': [{'row': detail_start + index, 'label': row['label'], 'tag': row['tag']}
+                     for index, row in enumerate(rows)]}
+
+
+def _find_row(rows, label):
+    for index, row in enumerate(rows):
+        if row['label'] == label:
+            return index
+    raise KeyError(label)
+
+
 # ────────────────────────────────────────────────────────────── 读回校验
 def evaluate_and_verify(path, plan):
     workbook = load_workbook(path)
+    landing = workbook[LANDING]
     front = workbook[FRONT]
     bottom = workbook[BOTTOM]
     evaluator = WorkbookEvaluator(workbook)
+    sheet_scan = ((LANDING, landing, 4), (FRONT, front, 9), (BOTTOM, bottom, 9))
     layout = plan['layout']
 
     errors, na_cells, values = [], [], {}
@@ -1495,8 +1810,8 @@ def evaluate_and_verify(path, plan):
                 values['%s!%s%d' % (sheet, get_column_letter(col), row)] = result
         return result
 
-    for sheet_name, worksheet in ((FRONT, front), (BOTTOM, bottom)):
-        for row in worksheet.iter_rows(min_col=1, max_col=9):
+    for sheet_name, worksheet, max_col in sheet_scan:
+        for row in worksheet.iter_rows(min_col=1, max_col=max_col):
             for cell in row:
                 if cell.data_type == 'f':
                     evaluate(sheet_name, cell.row, cell.column)
@@ -1520,8 +1835,8 @@ def evaluate_and_verify(path, plan):
         evaluate(BOTTOM, 16, 8)
 
     links = []
-    for sheet_name, worksheet in ((FRONT, front), (BOTTOM, bottom)):
-        for row in worksheet.iter_rows(min_col=1, max_col=9):
+    for sheet_name, worksheet, max_col in sheet_scan:
+        for row in worksheet.iter_rows(min_col=1, max_col=max_col):
             for cell in row:
                 link = cell.hyperlink
                 if link is None:
@@ -1628,6 +1943,58 @@ def evaluate_and_verify(path, plan):
            '工作簿未设置 calcPr fullCalcOnLoad=1')
     expect(str(front['B6'].value or '').startswith('='), '报价BOM 未保留公式引用')
 
+    # ---- 对内报价单：表序、默认选中、四列表头、与 BOM 含税总价一致、四项固定费用 ----
+    landing_info = plan.get('landing') or {}
+    total_row = landing_info.get('totalRow')
+
+    def landing_value(ref):
+        """优先取求值结果（公式格），退回单元格字面值（如 1 套、8 个这类常量）。"""
+        key = '%s!%s' % (LANDING, ref)
+        if key in values:
+            return values[key]
+        return landing[ref].value
+    expect(workbook.sheetnames == [LANDING, FRONT, BOTTOM],
+           '工作表顺序不是 对内报价单/报价BOM/报价底稿：%s' % '、'.join(workbook.sheetnames))
+    expect(workbook.active is not None and workbook.active.title == LANDING,
+           '打开工作簿时未默认选中「对内报价单」')
+    expect(landing['A1'].value == '货号', '对内报价单 A1 缺少「货号」')
+    expect(landing['B1'].value == str(plan['calc']['product'].get('sku') or ''),
+           '对内报价单 货号与产品不符')
+    expect(landing['A3'].value == '成本明细' and landing['B3'].value == '数量'
+           and landing['C3'].value == '单价' and landing['D3'].value == '金额',
+           '对内报价单 四列表头不是 成本明细/数量/单价/金额')
+    expect(bool(total_row), '对内报价单 未记录含税合计行')
+    if total_row:
+        expect(landing['D2'].value == '=D%d' % total_row, '对内报价单 顶部含税合计未引用底部合计')
+        expect(landing['C%d' % (total_row - 1)].value == "='%s'!B9" % BOTTOM,
+               '对内报价单 税金行未按底稿税率取数')
+        expect('待核价' in str(landing['D%d' % total_row].value or ''),
+               '对内报价单 含税合计缺少「待核价」兜底公式')
+    after_tax_value = values.get('%s!G%d' % (FRONT, layout['afterTax']))
+    landing_total = values.get('%s!%s' % (LANDING, landing_info.get('totalCell') or 'D1'))
+    if ready:
+        expect(isinstance(landing_total, float) and isinstance(after_tax_value, float)
+               and abs(landing_total - after_tax_value) <= 1e-6,
+               '对内报价单 含税合计%r与报价BOM含税报价%r不一致' % (landing_total, after_tax_value))
+    else:
+        expect(landing_total == '待核价',
+               '待核价草稿的含税合计应显示「待核价」，实际为 %r' % (landing_total,))
+    fixed_want = {'护角': 1.6, '说明书、贴标': 4.0, '包装人工': 5.0, '验货、装柜': 1.5}
+    landing_labels = [row.get('label') for row in (landing_info.get('rows') or [])]
+    for label, cell in (landing_info.get('fixedFees') or {}).items():
+        got = values.get('%s!%s' % (LANDING, cell))
+        expect(isinstance(got, float) and abs(got - fixed_want.get(label, 0)) <= 1e-9,
+               '对内报价单 固定费用「%s」应为 %.2f 元/件，实际 %r' % (label, fixed_want.get(label, 0), got))
+        expect(landing_labels.count(label) == 1, '对内报价单 固定费用「%s」重复出现' % label)
+    landing_setup = landing.page_setup
+    expect(str(landing_setup.paperSize) == '9' and landing_setup.orientation == 'landscape',
+           '对内报价单 不是 A4 横向')
+    expect(str(landing_setup.fitToWidth) == '1' and str(landing_setup.fitToHeight) == '1',
+           '对内报价单 未设置一页宽一页高')
+    expect(landing.sheet_properties.pageSetUpPr is not None
+           and landing.sheet_properties.pageSetUpPr.fitToPage is True, '对内报价单 未设置 fitToPage')
+    expect(bool(landing.print_area), '对内报价单 缺少打印区域')
+
     # 同一单元格可能被「全表扫描」与「关键单元格复核」各算一次，去重后只保留一条。
     errors = list(dict.fromkeys(errors))
     na_cells = list(dict.fromkeys(na_cells))
@@ -1636,11 +2003,40 @@ def evaluate_and_verify(path, plan):
         # 草稿单允许 #N/A（缺价），但其它公式错误与结构问题一律失败。
         'ok': not structural and not blocking_errors and (not ready or not na_cells),
         'sheets': [
+            {'name': LANDING, 'lastRow': landing_info.get('lastRow') or landing.max_row,
+             'lastColumn': 4, 'maxRow': landing.max_row, 'maxColumn': landing.max_column},
             {'name': FRONT, 'lastRow': layout['footer'], 'lastColumn': 9,
              'maxRow': front.max_row, 'maxColumn': front.max_column},
             {'name': BOTTOM, 'lastRow': (plan.get('bottomLayout') or {}).get('lastRow', bottom.max_row),
              'lastColumn': 9, 'maxRow': bottom.max_row, 'maxColumn': bottom.max_column},
         ],
+        'landing': {
+            'lastRow': landing_info.get('lastRow') or landing.max_row,
+            'totalRow': total_row,
+            'totalCell': landing_info.get('totalCell'),
+            'total': landing_total,
+            'afterTax': after_tax_value,
+            'matchesBom': (isinstance(landing_total, float) and isinstance(after_tax_value, float)
+                           and abs(landing_total - after_tax_value) <= 1e-6),
+            'fixedFees': {label: values.get('%s!%s' % (LANDING, cell))
+                          for label, cell in (landing_info.get('fixedFees') or {}).items()},
+            'fastenerRow': landing_info.get('fastenerRow'),
+            'costRow': landing_info.get('costRow'),
+            'costAmount': values.get('%s!D%s' % (LANDING, landing_info.get('costRow'))),
+            'managementRow': landing_info.get('managementRow'),
+            'profitRow': landing_info.get('profitRow'),
+            'taxRow': landing_info.get('taxRow'),
+            'taxRate': values.get('%s!C%s' % (LANDING, landing_info.get('taxRow'))),
+            'rows': [
+                dict(
+                    row,
+                    quantity=landing_value('B%d' % row['row']),
+                    unitPrice=landing_value('C%d' % row['row']),
+                    amount=landing_value('D%d' % row['row']),
+                )
+                for row in (landing_info.get('rows') or [])
+            ],
+        },
         'formulaErrors': [x for x in errors if '#N/A' not in x],
         'allFormulaErrors': errors,
         'naCells': na_cells,
@@ -1681,6 +2077,13 @@ def build(plan, out_path):
         plan['layout']['cartonSection'] = bottom_layout['cartonSection']
     write_front(front, plan, sources, protection_total, area_row)
 
+    # 首页「对内报价单」插到最前：表序固定为 对内报价单 / 报价BOM / 报价底稿。
+    landing = workbook.create_sheet(LANDING, 0)
+    plan['landing'] = write_landing(landing, plan)
+    workbook.active = 0
+    for index, sheet in enumerate(workbook.worksheets):
+        sheet.sheet_view.tabSelected = index == 0
+
     last_row = bottom_layout['lastRow']
     front.print_area = 'A1:I%d' % plan['layout']['footer']
     front.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
@@ -1703,7 +2106,7 @@ def build(plan, out_path):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description='生成 hardware-quote 两表报价工作簿。')
+    parser = argparse.ArgumentParser(description='生成 hardware-quote 三表报价工作簿（对内报价单/报价BOM/报价底稿）。')
     parser.add_argument('--plan', required=True, help='plan JSON 路径')
     parser.add_argument('--out', help='输出 xlsx 路径（默认用 plan.options.output）')
     parser.add_argument('--report', help='校验报告 JSON 路径（默认与输出同名 .report.json）')
